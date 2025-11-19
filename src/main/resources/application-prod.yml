@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${rds.host}:${rds.port}/${rds.dbname}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${rds.username}
+    password: ${rds.password}

@@ -1,1 +1,19 @@
-spring.application.name=weflow-server
+spring:
+  profiles:
+    active: prod  # 기본 실행 환경
+
+  config:
+    import: optional:application-secret.yml
+
+jpa:
+  hibernate:
+    ddl-auto: update
+  properties:
+    hibernate:
+      format_sql: true
+      show_sql: true
+      dialect: org.hibernate.dialect.MySQL8Dialect
+
+logging:
+  level:
+    org.hibernate.SQL: debug

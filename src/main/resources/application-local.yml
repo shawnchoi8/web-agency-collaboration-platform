@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${localdb.host}:${localdb.port}/${localdb.dbname}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${localdb.username}
+    password: ${localdb.password}
