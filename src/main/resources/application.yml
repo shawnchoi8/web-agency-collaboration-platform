@@ -1,7 +1,4 @@
 spring:
-  profiles:
-    active: prod  # 기본 실행 환경
-
   config:
     import: optional:application-secret.yml
 
