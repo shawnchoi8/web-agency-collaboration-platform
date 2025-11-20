@@ -29,8 +29,9 @@ jobs:
 
       # 4. 빌드 (테스트 포함)
       - name: Build with Gradle
-        run: ./gradlew build --info
+        run: ./gradlew build --info -Dspring.profiles.active=test
 
       # 5. 테스트만 따로 실행하고 싶으면 (선택)
       - name: Run Tests
-        run: ./gradlew test --info
+        run: ./gradlew test --info -Dspring.profiles.active=test
+
