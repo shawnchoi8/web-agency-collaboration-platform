@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.entity.Post;
+package com.rdc.weflow_server.entity.post;
 
 public enum PostStatus {
     NORMAL,         // 일반 게시글 (질문 없는 그냥 글)

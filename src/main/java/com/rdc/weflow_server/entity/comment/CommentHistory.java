@@ -1,5 +1,6 @@
-package com.rdc.weflow_server.entity.Comment;
+package com.rdc.weflow_server.entity.comment;
 
+import com.rdc.weflow_server.entity.user.User;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

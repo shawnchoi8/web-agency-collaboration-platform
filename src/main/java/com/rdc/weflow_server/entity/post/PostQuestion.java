@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.entity.Post;
+package com.rdc.weflow_server.entity.post;
 
 import com.rdc.weflow_server.entity.BaseEntity;
 import jakarta.persistence.*;

@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.entity.Notification;
+package com.rdc.weflow_server.entity.notification;
 
 public enum NotificationType {
     STEP_REQUEST,

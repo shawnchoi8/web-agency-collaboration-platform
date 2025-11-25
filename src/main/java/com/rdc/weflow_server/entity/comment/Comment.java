@@ -1,12 +1,12 @@
-package com.rdc.weflow_server.entity.Comment;
+package com.rdc.weflow_server.entity.comment;
 
 import com.rdc.weflow_server.entity.BaseEntity;
-import com.rdc.weflow_server.entity.Post.Post;
+import com.rdc.weflow_server.entity.post.Post;
+import com.rdc.weflow_server.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;

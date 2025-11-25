@@ -1,7 +1,10 @@
-package com.rdc.weflow_server.entity.Notification;
+package com.rdc.weflow_server.entity.notification;
 
 import com.rdc.weflow_server.entity.BaseEntity;
-import com.rdc.weflow_server.entity.Post.Post;
+import com.rdc.weflow_server.entity.post.Post;
+import com.rdc.weflow_server.entity.project.Project;
+import com.rdc.weflow_server.entity.step.StepRequest;
+import com.rdc.weflow_server.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
