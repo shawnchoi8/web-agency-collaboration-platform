@@ -19,7 +19,7 @@ public class TemplateDetailResponse {
     private boolean isLocked;
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
-    private List<QuestionResponse> questions;
+    private List<QuestionDetailResponse> questions;
 
     public static TemplateDetailResponse from(Checklist template, List<ChecklistQuestion> questionList) {
         return TemplateDetailResponse.builder()
@@ -30,7 +30,7 @@ public class TemplateDetailResponse {
                 .isLocked(template.getIsLocked())
                 .createdDate(template.getCreatedDate())
                 .lastModifiedDate(template.getLastModifiedDate())
-                .questions(questionList.stream().map(QuestionResponse::from).toList())
+                .questions(questionList.stream().map(QuestionDetailResponse::from).toList())
                 .build();
     }
 }
