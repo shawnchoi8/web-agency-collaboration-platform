@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.service.checklist;
 
+import com.rdc.weflow_server.dto.checklist.OptionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.OptionRequest;
 import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
@@ -8,6 +9,8 @@ import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -22,11 +25,13 @@ public class ChecklistOptionService {
         ChecklistQuestion question = questionRepository.findById(request.getQuestionId())
                 .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
 
+        int nextOrder = optionRepository.findAllByQuestionOrderByOrderIndexAsc(question).size() + 1;
+
         ChecklistOption option = ChecklistOption.builder()
                 .question(question)
                 .optionText(request.getOptionText())
                 .hasInput(request.getHasInput())
-                .orderIndex(request.getOrderIndex())
+                .orderIndex(nextOrder)
                 .build();
 
         optionRepository.save(option);
@@ -40,7 +45,7 @@ public class ChecklistOptionService {
                 .orElseThrow(() -> new RuntimeException("OPTION_NOT_FOUND"));
 
         // 업데이트 가능한 필드만 부분 변경
-        option.updateOption(request.getOptionText(), request.getHasInput(), request.getOrderIndex());
+        option.updateOption(request.getOptionText(), request.getHasInput(), null);
 
         return option.getId();
     }
@@ -52,4 +57,32 @@ public class ChecklistOptionService {
 
         optionRepository.delete(option);
     }
+
+    // 옵션 순서 재정렬
+    @Transactional
+    public void reorderOptions(OptionReorderRequest request) {
+
+        questionRepository.findById(request.getQuestionId())
+                .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+
+        List<Long> orderedIds = request.getOrderedIds();
+
+        for (int i = 0; i < orderedIds.size(); i++) {
+            Long optionId = orderedIds.get(i);
+
+            ChecklistOption option = optionRepository.findById(optionId)
+                    .orElseThrow(() -> new RuntimeException("OPTION_NOT_FOUND"));
+
+            if (!option.getQuestion().getId().equals(request.getQuestionId())) {
+                throw new RuntimeException("INVALID_OPTION_SEQUENCE");
+            }
+
+            option.updateOption(
+                    option.getOptionText(),
+                    option.getHasInput(),
+                    i + 1
+            );
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.service.checklist;
 
+import com.rdc.weflow_server.dto.checklist.QuestionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.QuestionRequest;
 import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
@@ -9,6 +10,8 @@ import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -24,11 +27,13 @@ public class ChecklistQuestionService {
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
                 .orElseThrow(() -> new RuntimeException("CHECKLIST_NOT_FOUND"));
 
+        int nextOrder = questionRepository.countByChecklist(checklist) + 1;
+
         ChecklistQuestion question = ChecklistQuestion.builder()
                 .checklist(checklist)
                 .questionText(request.getQuestionText())
                 .questionType(request.getQuestionType())
-                .orderIndex(request.getOrderIndex())
+                .orderIndex(nextOrder)
                 .build();
 
         ChecklistQuestion saved = questionRepository.save(question);
@@ -45,7 +50,7 @@ public class ChecklistQuestionService {
         question.updateQuestion(
                 request.getQuestionText(),
                 request.getQuestionType(),
-                request.getOrderIndex()
+                null
         );
 
         return question.getId();
@@ -60,4 +65,34 @@ public class ChecklistQuestionService {
         questionRepository.delete(question);
     }
 
+    // 질문 순서 재정렬
+    @Transactional
+    public void reorderQuestions(QuestionReorderRequest request) {
+
+        // 체크리스트 존재 여부 확인
+        checklistRepository.findById(request.getChecklistId())
+                .orElseThrow(() -> new RuntimeException("CHECKLIST_NOT_FOUND"));
+
+        // 새 순서 리스트
+        List<Long> orderedIds = request.getOrderedIds();
+
+        for (int i = 0; i < orderedIds.size(); i++) {
+            Long questionId = orderedIds.get(i);
+
+            ChecklistQuestion question = questionRepository.findById(questionId)
+                    .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+
+            // 이 질문이 해당 체크리스트에 소속된 질문인지 검증
+            if (!question.getChecklist().getId().equals(request.getChecklistId())) {
+                throw new RuntimeException("INVALID_QUESTION_SEQUENCE");
+            }
+
+            // orderIndex 재부여
+            question.updateQuestion(
+                    question.getQuestionText(),  // 내용은 그대로
+                    question.getQuestionType(),
+                    i + 1                       // 새 순서
+            );
+        }
+    }
 }

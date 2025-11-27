@@ -12,5 +12,4 @@ public class QuestionRequest {
     private Long checklistId;
     private String questionText;
     private QuestionType questionType;
-    private Integer orderIndex;
 }

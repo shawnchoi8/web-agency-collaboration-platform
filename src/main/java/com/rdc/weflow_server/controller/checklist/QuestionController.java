@@ -1,6 +1,7 @@
 package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
+import com.rdc.weflow_server.dto.checklist.QuestionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.QuestionRequest;
 import com.rdc.weflow_server.dto.checklist.QuestionResponse;
 import com.rdc.weflow_server.service.checklist.ChecklistQuestionService;
@@ -43,6 +44,7 @@ public class QuestionController {
                         .build()
         );
     }
+
     // 질문 삭제
     @DeleteMapping("/{questionId}")
     public ApiResponse<Long> deleteQuestion(@PathVariable Long questionId) {
@@ -52,5 +54,14 @@ public class QuestionController {
                 "QUESTION_DELETED",
                 questionId
         );
+    }
+
+    // 질문 순서 재정렬
+    @PatchMapping("/reorder")
+    public ApiResponse<Void> reorderQuestions(
+            @RequestBody QuestionReorderRequest request
+    ) {
+        questionService.reorderQuestions(request);
+        return ApiResponse.success("QUESTIONS_REORDERED", null);
     }
 }

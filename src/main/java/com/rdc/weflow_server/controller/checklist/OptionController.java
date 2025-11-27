@@ -1,6 +1,7 @@
 package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
+import com.rdc.weflow_server.dto.checklist.OptionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.OptionRequest;
 import com.rdc.weflow_server.dto.checklist.OptionResponse;
 import com.rdc.weflow_server.service.checklist.ChecklistOptionService;
@@ -26,7 +27,6 @@ public class OptionController {
                         .optionId(optionId)
                         .optionText(request.getOptionText())
                         .hasInput(request.getHasInput())
-                        .orderIndex(request.getOrderIndex())
                         .build()
         );
     }
@@ -45,7 +45,6 @@ public class OptionController {
                         .optionId(id)
                         .optionText(request.getOptionText())
                         .hasInput(request.getHasInput())
-                        .orderIndex(request.getOrderIndex())
                         .build()
         );
     }
@@ -61,4 +60,14 @@ public class OptionController {
                 optionId
         );
     }
+
+    // 옵션 순서 재정렬
+    @PatchMapping("/reorder")
+    public ApiResponse<Void> reorderOptions(
+            @RequestBody OptionReorderRequest request
+    ) {
+        optionService.reorderOptions(request);
+        return ApiResponse.success("OPTIONS_REORDERED", null);
+    }
+
 }
