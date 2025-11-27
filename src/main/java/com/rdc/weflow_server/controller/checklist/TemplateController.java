@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/checklist-templates")
 @RequiredArgsConstructor
-public class ChecklistTemplateController {
+public class TemplateController {
     private final ChecklistTemplateService checklistTemplateService;
 
     // 템플릿 생성

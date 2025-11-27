@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
-public class ChecklistQuestionController {
+public class QuestionController {
     private final ChecklistQuestionService questionService;
 
     // 질문 생성
