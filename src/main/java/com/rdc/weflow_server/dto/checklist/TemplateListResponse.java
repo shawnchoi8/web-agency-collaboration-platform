@@ -27,8 +27,8 @@ public class TemplateListResponse {
                 .category(template.getCategory())
                 .isLocked(template.getIsLocked())
                 .questionCount(questionCount)
-                .createdAt(template.getCreatedDate())
-                .updatedAt(template.getLastModifiedDate())
+                .createdAt(template.getCreatedAt())
+                .updatedAt(template.getUpdatedAt())
                 .build();
     }
 }
