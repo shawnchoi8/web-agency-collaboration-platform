@@ -3,7 +3,6 @@ package com.rdc.weflow_server.controller.checklist;
 import com.rdc.weflow_server.common.api.ApiResponse;
 import com.rdc.weflow_server.dto.checklist.QuestionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.QuestionRequest;
-import com.rdc.weflow_server.dto.checklist.QuestionResponse;
 import com.rdc.weflow_server.service.checklist.ChecklistQuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,22 +15,20 @@ public class QuestionController {
 
     // 질문 생성
     @PostMapping
-    public ApiResponse<QuestionResponse> createQuestion(
+    public ApiResponse<Long> createQuestion(
             @RequestBody QuestionRequest request
     ) {
         Long questionId = questionService.createQuestion(request);
 
         return ApiResponse.success(
                 "QUESTION_CREATED",
-                QuestionResponse.builder()
-                        .questionId(questionId)
-                        .build()
+                questionId
         );
     }
 
     // 질문 수정
     @PatchMapping("/{questionId}")
-    public ApiResponse<QuestionResponse> updateQuestion(
+    public ApiResponse<Long> updateQuestion(
             @PathVariable Long questionId,
             @RequestBody QuestionRequest request
     ) {
@@ -39,9 +36,7 @@ public class QuestionController {
 
         return ApiResponse.success(
                 "QUESTION_UPDATED",
-                QuestionResponse.builder()
-                        .questionId(id)
-                        .build()
+                id
         );
     }
 

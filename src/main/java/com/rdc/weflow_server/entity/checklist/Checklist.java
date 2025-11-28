@@ -54,6 +54,26 @@ public class Checklist extends BaseEntity {
     @OneToMany(mappedBy = "checklist", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChecklistQuestion> questions = new ArrayList<>();
 
+    // 체크리스트 수정
+    public void updateChecklist(String title, String description) {
+        if (this.isLocked) {
+            throw new IllegalStateException("잠긴 체크리스트는 수정할 수 없습니다.");
+        }
+
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+    }
+
+    // 체크리스트 단계 수정
+    public void changeStep(Step step) {
+        this.step = step;
+    }
+
+    // 체크리스트 잠금
+    public void lockChecklist() {
+        this.isLocked = true;
+    }
+
     // 템플릿 수정
     public void updateTemplate(String title, String description, String category) {
         if (this.isLocked) {
@@ -64,5 +84,10 @@ public class Checklist extends BaseEntity {
         if (description != null) this.description = description;
         if (category != null) this.category = category;
     }
+    // 템플릿 연결
+    public void linkTemplate(Checklist template) {
+        this.template = template;
+    }
+
 
 }

@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface ChecklistRepository extends JpaRepository<Checklist, Long> {
     List<Checklist> findByIsTemplateTrue();// 템플릿 목록
     Optional<Checklist> findByIdAndIsTemplateTrue(Long templateId); // 템플릿 조회
+    List<Checklist> findByStep_Project_IdOrderByCreatedAtDesc(Long projectId); // 프로젝트별 체크리스트 목록 조회
+
 }

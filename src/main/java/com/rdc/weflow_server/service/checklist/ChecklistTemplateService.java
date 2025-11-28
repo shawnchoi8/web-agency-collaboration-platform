@@ -1,7 +1,7 @@
 package com.rdc.weflow_server.service.checklist;
 
 import com.rdc.weflow_server.dto.checklist.TemplateDetailResponse;
-import com.rdc.weflow_server.dto.checklist.TemplateListResponse;
+import com.rdc.weflow_server.dto.checklist.TemplateResponse;
 import com.rdc.weflow_server.dto.checklist.TemplateRequest;
 import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
@@ -40,14 +40,14 @@ public class ChecklistTemplateService {
 
     // 템플릿 목록 조회
     @Transactional(readOnly = true)
-    public List<TemplateListResponse> getTemplateList() {
+    public List<TemplateResponse> getTemplateList() {
 
         List<Checklist> templates = checklistRepository.findByIsTemplateTrue();
 
         return templates.stream()
                 .map(template -> {
                     int questionCount = checklistQuestionRepository.countByChecklist(template);
-                    return TemplateListResponse.from(template, questionCount);
+                    return TemplateResponse.from(template, questionCount);
                 })
                 .toList();
     }

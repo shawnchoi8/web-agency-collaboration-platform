@@ -43,7 +43,11 @@ public enum ErrorCode {
     CHECKLIST_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "CHECKLIST_OPTION_001", "체크리스트 옵션을 찾을 수 없습니다."),
     CHECKLIST_OPTION_NOT_IN_QUESTION(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_002", "질문에 속하지 않은 옵션입니다."),
     CHECKLIST_OPTION_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_003", "해당 질문 타입에는 옵션을 추가할 수 없습니다."),
-    CHECKLIST_INVALID_OPTION_SEQUENCE(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_004", "옵션 순서가 올바르지 않습니다.");
+    CHECKLIST_INVALID_OPTION_SEQUENCE(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_004", "옵션 순서가 올바르지 않습니다."),
+
+    // Checklist Answer
+    REQUIRED_ANSWER_INPUT(HttpStatus.BAD_REQUEST, "CHECKLIST_ANSWER_001", "해당 선택지는 추가 입력이 필요합니다."),
+    INVALID_ANSWER_INPUT(HttpStatus.BAD_REQUEST, "CHECKLIST_ANSWER_002", "해당 선택지에는 추가 입력을 허용하지 않습니다.");
 
     private final HttpStatus status;
     private final String code;

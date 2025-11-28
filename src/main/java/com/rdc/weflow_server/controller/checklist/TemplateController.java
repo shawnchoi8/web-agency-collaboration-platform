@@ -2,9 +2,8 @@ package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
 import com.rdc.weflow_server.dto.checklist.TemplateDetailResponse;
-import com.rdc.weflow_server.dto.checklist.TemplateListResponse;
-import com.rdc.weflow_server.dto.checklist.TemplateRequest;
 import com.rdc.weflow_server.dto.checklist.TemplateResponse;
+import com.rdc.weflow_server.dto.checklist.TemplateRequest;
 import com.rdc.weflow_server.service.checklist.ChecklistTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,17 +18,17 @@ public class TemplateController {
 
     // 템플릿 생성
     @PostMapping
-    public ApiResponse<TemplateResponse> createTemplate(@RequestBody TemplateRequest request) {
+    public ApiResponse<Long> createTemplate(@RequestBody TemplateRequest request) {
         Long templateId = checklistTemplateService.createTemplate(request);
         return ApiResponse.success(
                 "TEMPLATE_CREATED",
-                TemplateResponse.builder().templateId(templateId).build()
+                templateId
         );
     }
 
     // 템플릿 목록 조회
     @GetMapping
-    public ApiResponse<List<TemplateListResponse>> getTemplateList() {
+    public ApiResponse<List<TemplateResponse>> getTemplateList() {
         return ApiResponse.success(
                 "TEMPLATE_LIST_FETCHED",
                 checklistTemplateService.getTemplateList()
@@ -47,23 +46,23 @@ public class TemplateController {
 
     // 템플릿 수정
     @PatchMapping("/{templateId}")
-    public ApiResponse<TemplateResponse> updateTemplate(@PathVariable Long templateId, @RequestBody TemplateRequest request) {
+    public ApiResponse<Long> updateTemplate(@PathVariable Long templateId, @RequestBody TemplateRequest request) {
         Long id = checklistTemplateService.updateTemplate(templateId, request);
 
         return ApiResponse.success(
                 "TEMPLATE_UPDATED",
-                TemplateResponse.builder().templateId(id).build()
+                templateId
         );
     }
 
     // 템플릿 삭제
     @DeleteMapping("/{templateId}")
-    public ApiResponse<TemplateResponse> deleteTemplate(@PathVariable Long templateId) {
+    public ApiResponse<Long> deleteTemplate(@PathVariable Long templateId) {
         Long id = checklistTemplateService.deleteTemplate(templateId);
 
         return ApiResponse.success(
                 "TEMPLATE_DELETED",
-                TemplateResponse.builder().templateId(id).build()
+                templateId
         );
     }
 }
