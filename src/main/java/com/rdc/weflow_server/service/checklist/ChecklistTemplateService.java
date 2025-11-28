@@ -5,6 +5,8 @@ import com.rdc.weflow_server.dto.checklist.TemplateListResponse;
 import com.rdc.weflow_server.dto.checklist.TemplateRequest;
 import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.exception.BusinessException;
+import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +57,7 @@ public class ChecklistTemplateService {
     public TemplateDetailResponse getTemplateDetail(Long templateId) {
 
         Checklist template = checklistRepository.findByIdAndIsTemplateTrue(templateId)
-                .orElseThrow(() -> new RuntimeException("TEMPLATE_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
         // 질문 + 옵션 조회
         List<ChecklistQuestion> questions =

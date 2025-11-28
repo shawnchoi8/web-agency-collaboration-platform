@@ -4,6 +4,8 @@ import com.rdc.weflow_server.dto.checklist.QuestionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.QuestionRequest;
 import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.exception.BusinessException;
+import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
@@ -25,7 +27,7 @@ public class ChecklistQuestionService {
     public Long createQuestion(QuestionRequest request) {
 
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
-                .orElseThrow(() -> new RuntimeException("CHECKLIST_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
         int nextOrder = questionRepository.countByChecklist(checklist) + 1;
 
@@ -45,7 +47,7 @@ public class ChecklistQuestionService {
     public Long updateQuestion(Long questionId, QuestionRequest request) {
 
         ChecklistQuestion question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
 
         question.updateQuestion(
                 request.getQuestionText(),
@@ -60,7 +62,7 @@ public class ChecklistQuestionService {
     public void deleteQuestion(Long questionId) {
 
         ChecklistQuestion question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
 
         questionRepository.delete(question);
     }
@@ -71,7 +73,7 @@ public class ChecklistQuestionService {
 
         // 체크리스트 존재 여부 확인
         checklistRepository.findById(request.getChecklistId())
-                .orElseThrow(() -> new RuntimeException("CHECKLIST_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
         // 새 순서 리스트
         List<Long> orderedIds = request.getOrderedIds();
@@ -80,11 +82,11 @@ public class ChecklistQuestionService {
             Long questionId = orderedIds.get(i);
 
             ChecklistQuestion question = questionRepository.findById(questionId)
-                    .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
 
             // 이 질문이 해당 체크리스트에 소속된 질문인지 검증
             if (!question.getChecklist().getId().equals(request.getChecklistId())) {
-                throw new RuntimeException("INVALID_QUESTION_SEQUENCE");
+                throw new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_IN_CHECKLIST);
             }
 
             // orderIndex 재부여

@@ -4,6 +4,8 @@ import com.rdc.weflow_server.dto.checklist.OptionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.OptionRequest;
 import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.exception.BusinessException;
+import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ public class ChecklistOptionService {
     public Long createOption(OptionRequest request) {
 
         ChecklistQuestion question = questionRepository.findById(request.getQuestionId())
-                .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
 
         int nextOrder = optionRepository.findAllByQuestionOrderByOrderIndexAsc(question).size() + 1;
 
@@ -42,7 +44,7 @@ public class ChecklistOptionService {
     public Long updateOption(Long optionId, OptionRequest request) {
 
         ChecklistOption option = optionRepository.findById(optionId)
-                .orElseThrow(() -> new RuntimeException("OPTION_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_FOUND));
 
         // 업데이트 가능한 필드만 부분 변경
         option.updateOption(request.getOptionText(), request.getHasInput(), null);
@@ -53,7 +55,7 @@ public class ChecklistOptionService {
     // 옵션 삭제
     public void deleteOption(Long optionId) {
         ChecklistOption option = optionRepository.findById(optionId)
-                .orElseThrow(() -> new RuntimeException("OPTION_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_FOUND));
 
         optionRepository.delete(option);
     }
@@ -63,7 +65,7 @@ public class ChecklistOptionService {
     public void reorderOptions(OptionReorderRequest request) {
 
         questionRepository.findById(request.getQuestionId())
-                .orElseThrow(() -> new RuntimeException("QUESTION_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
 
         List<Long> orderedIds = request.getOrderedIds();
 
@@ -71,10 +73,10 @@ public class ChecklistOptionService {
             Long optionId = orderedIds.get(i);
 
             ChecklistOption option = optionRepository.findById(optionId)
-                    .orElseThrow(() -> new RuntimeException("OPTION_NOT_FOUND"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_FOUND));
 
             if (!option.getQuestion().getId().equals(request.getQuestionId())) {
-                throw new RuntimeException("INVALID_OPTION_SEQUENCE");
+                throw new BusinessException(ErrorCode.CHECKLIST_INVALID_OPTION_SEQUENCE);
             }
 
             option.updateOption(
