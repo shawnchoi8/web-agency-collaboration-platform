@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.dto.checklist;
 
+import com.rdc.weflow_server.entity.checklist.ChecklistAnswer;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +16,9 @@ public class QuestionResponse {
     private String questionType;
     private Integer orderIndex;
     private List<OptionResponse> options;
+    private AnswerResponse answer;
 
-    public static QuestionResponse from(ChecklistQuestion question) {
+    public static QuestionResponse from(ChecklistQuestion question, ChecklistAnswer answer) {
         return QuestionResponse.builder()
                 .questionId(question.getId())
                 .questionText(question.getQuestionText())
@@ -27,6 +29,7 @@ public class QuestionResponse {
                                 .map(OptionResponse::from)
                                 .collect(Collectors.toList())
                 )
+                .answer(answer != null ? AnswerResponse.from(answer) : null)
                 .build();
     }
 }

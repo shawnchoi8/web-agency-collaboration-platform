@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ChecklistAnswerRepository extends JpaRepository<ChecklistAnswer, Long> {
-    
+    List<ChecklistAnswer> findByChecklist_Id(Long checklistId); // 체크리스트별 답변 조회
 }

@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +81,21 @@ public class ChecklistService {
         Checklist checklist = checklistRepository.findById(checklistId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
-        return ChecklistDetailResponse.from(checklist);
+        // 해당 체크리스트의 모든 답변 조회
+        List<ChecklistAnswer> answers = answerRepository.findByChecklist_Id(checklistId);
+
+        // questionId → answer 매핑 (빠른 접근 위한 Map)
+        Map<Long, ChecklistAnswer> answerMap = answers.stream()
+                .collect(Collectors.toMap(a -> a.getQuestion().getId(), a -> a));
+
+        List<QuestionResponse> questionDtos =
+                checklist.getQuestions().stream()
+                        .map(q -> {
+                            ChecklistAnswer answer = answerMap.get(q.getId());
+                            return QuestionResponse.from(q, answer);
+                        })
+                        .toList();
+        return ChecklistDetailResponse.from(checklist, questionDtos);
     }
 
     // 체크리스트 수정

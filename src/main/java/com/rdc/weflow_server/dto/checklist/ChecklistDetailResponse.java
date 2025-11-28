@@ -29,7 +29,7 @@ public class ChecklistDetailResponse {
 
     private List<QuestionResponse> questions;
 
-    public static ChecklistDetailResponse from(Checklist checklist) {
+    public static ChecklistDetailResponse from(Checklist checklist, List<QuestionResponse> questions) {
         return ChecklistDetailResponse.builder()
                 .checklistId(checklist.getId())
                 .title(checklist.getTitle())
@@ -37,14 +37,11 @@ public class ChecklistDetailResponse {
                 .category(checklist.getCategory())
                 .isLocked(checklist.getIsLocked())
                 .stepId(checklist.getStep() != null ? checklist.getStep().getId() : null)
+                .stepName(checklist.getStep() != null ? checklist.getStep().getTitle() : null)
                 .templateId(checklist.getTemplate() != null ? checklist.getTemplate().getId() : null)
                 .createdAt(checklist.getCreatedAt())
                 .updatedAt(checklist.getUpdatedAt())
-                .questions(
-                        checklist.getQuestions().stream()
-                                .map(QuestionResponse::from)
-                                .toList()
-                )
+                .questions(questions)
                 .build();
     }
 }
