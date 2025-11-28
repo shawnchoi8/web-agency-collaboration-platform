@@ -28,8 +28,8 @@ public class TemplateDetailResponse {
                 .description(template.getDescription())
                 .category(template.getCategory())
                 .isLocked(template.getIsLocked())
-                .createdDate(template.getCreatedDate())
-                .lastModifiedDate(template.getLastModifiedDate())
+                .createdDate(template.getCreatedAt())
+                .lastModifiedDate(template.getUpdatedAt())
                 .questions(questionList.stream().map(QuestionDetailResponse::from).toList())
                 .build();
     }
