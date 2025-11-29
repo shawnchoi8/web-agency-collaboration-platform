@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.dto.checklist;
+package com.rdc.weflow_server.dto.checklist.request;
 
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion.QuestionType;
 import lombok.Getter;

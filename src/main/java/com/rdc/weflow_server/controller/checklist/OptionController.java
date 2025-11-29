@@ -1,9 +1,9 @@
 package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
-import com.rdc.weflow_server.dto.checklist.OptionReorderRequest;
-import com.rdc.weflow_server.dto.checklist.OptionRequest;
-import com.rdc.weflow_server.dto.checklist.OptionResponse;
+import com.rdc.weflow_server.dto.checklist.request.OptionReorderRequest;
+import com.rdc.weflow_server.dto.checklist.request.OptionRequest;
+import com.rdc.weflow_server.dto.checklist.response.OptionResponse;
 import com.rdc.weflow_server.service.checklist.ChecklistOptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

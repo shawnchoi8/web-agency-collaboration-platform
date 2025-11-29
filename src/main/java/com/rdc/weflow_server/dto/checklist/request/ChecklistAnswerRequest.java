@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.dto.checklist;
+package com.rdc.weflow_server.dto.checklist.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

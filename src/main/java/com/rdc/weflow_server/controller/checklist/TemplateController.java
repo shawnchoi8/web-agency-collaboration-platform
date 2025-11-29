@@ -1,9 +1,9 @@
 package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
-import com.rdc.weflow_server.dto.checklist.TemplateDetailResponse;
-import com.rdc.weflow_server.dto.checklist.TemplateResponse;
-import com.rdc.weflow_server.dto.checklist.TemplateRequest;
+import com.rdc.weflow_server.dto.checklist.response.TemplateDetailResponse;
+import com.rdc.weflow_server.dto.checklist.response.TemplateResponse;
+import com.rdc.weflow_server.dto.checklist.request.TemplateRequest;
 import com.rdc.weflow_server.service.checklist.ChecklistTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

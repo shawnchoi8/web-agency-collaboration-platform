@@ -1,7 +1,7 @@
 package com.rdc.weflow_server.service.checklist;
 
-import com.rdc.weflow_server.dto.checklist.OptionReorderRequest;
-import com.rdc.weflow_server.dto.checklist.OptionRequest;
+import com.rdc.weflow_server.dto.checklist.request.OptionReorderRequest;
+import com.rdc.weflow_server.dto.checklist.request.OptionRequest;
 import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
 import com.rdc.weflow_server.exception.BusinessException;

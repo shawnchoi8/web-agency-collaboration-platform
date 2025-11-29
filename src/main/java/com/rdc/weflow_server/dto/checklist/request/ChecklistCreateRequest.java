@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.dto.checklist;
+package com.rdc.weflow_server.dto.checklist.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
