@@ -26,4 +26,11 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
             @Param("userId") Long userId,
             @Param("includeDeleted") boolean includeDeleted
     );
+
+    // 프로젝트 멤버 조회
+    @Query("SELECT pm FROM ProjectMember pm " +
+            "JOIN FETCH pm.user u " +
+            "JOIN fetch u.company c " +
+            "WHERE pm.project.id = :projectId")
+    List<ProjectMember> findAllByProjectIdIncludeDeleted(@Param("projectId") Long projectId);
 }

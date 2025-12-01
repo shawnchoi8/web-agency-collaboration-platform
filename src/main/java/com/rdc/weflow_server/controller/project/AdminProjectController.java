@@ -83,4 +83,16 @@ public class AdminProjectController {
         AdminProjectMemberAddResponseDto response = adminProjectService.addProjectMember(projectId, request, user);
         return ApiResponse.success("PROJECT_MEMBER_ADDED", response);
     }
+
+    // 프로젝트 멤버 조회
+    @GetMapping("/{projectId}/members")
+    public ApiResponse<AdminProjectMemberListResponseDto> getProjectMembers(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        return ApiResponse.success(
+                "PROJECT_MEMBER_LIST_FETCHED",
+                adminProjectService.getProjectMembers(projectId, user)
+        );
+    }
 }

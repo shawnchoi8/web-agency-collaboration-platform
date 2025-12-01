@@ -30,15 +30,20 @@ public class AdminProjectService {
     private final UserRepository userRepository;
     private final ProjectMemberRepository projectMemberRepository;
 
+    // 관리자 체크 공통 메소드
+    private static void validateAdmin(CustomUserDetails user) {
+        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+    }
+
     // 프로젝트 생성
     public AdminProjectCreateResponseDto createProject(
             AdminProjectCreateRequestDto request,
             CustomUserDetails user
     ) {
         // 관리자 체크
-        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
-            throw new BusinessException(ErrorCode.PROJECT_CREATE_FORBIDDEN);
-        }
+        validateAdmin(user);
 
         // 회사 조회
         Company company = companyRepository.findById(request.getCustomerCompanyId())
@@ -86,9 +91,7 @@ public class AdminProjectService {
             CustomUserDetails user
     ) {
         // 관리자 체크
-        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
-            throw new BusinessException(ErrorCode.PROJECT_UPDATE_FORBIDDEN);
-        }
+        validateAdmin(user);
 
         // 프로젝트 조회
         Project project = projectRepository.findById(projectId)
@@ -126,9 +129,7 @@ public class AdminProjectService {
     public void deleteProject(Long projectId, CustomUserDetails user) {
 
         // 관리자만 삭제 가능
-        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
-            throw new BusinessException(ErrorCode.PROJECT_DELETE_FORBIDDEN);
-        }
+        validateAdmin(user);
 
         Project project = projectRepository.findByIdWithMembersFiltered(projectId, true)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
@@ -143,10 +144,8 @@ public class AdminProjectService {
     public AdminProjectMemberAddResponseDto addProjectMember(Long projectId, AdminProjectMemberAddRequestDto request, CustomUserDetails user) {
     
         // 1) 관리자만 가능
-        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
-            throw new BusinessException(ErrorCode.PROJECT_MEMBER_ADD_FORBIDDEN);
-        }
-        
+        validateAdmin(user);
+
         // 2) 프로젝트 조회
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
@@ -173,5 +172,23 @@ public class AdminProjectService {
         projectMemberRepository.save(member);
 
         return AdminProjectMemberAddResponseDto.of(targetUser.getId(), request.getProjectRole());
+    }
+
+    // 프로젝트 멤버 조회
+    public AdminProjectMemberListResponseDto getProjectMembers(
+            Long projectId,
+            CustomUserDetails user
+    ) {
+        // 1) 관리자만 조회
+        validateAdmin(user);
+
+        // 2) 프로젝트 존재 여부 확인
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        // 3) 멤버 목록 조회 (삭제된 멤버도 포함)
+        List<ProjectMember> members = projectMemberRepository.findAllByProjectIdIncludeDeleted(projectId);
+
+        return AdminProjectMemberListResponseDto.of(members);
     }
 }
