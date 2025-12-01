@@ -4,12 +4,17 @@ import com.rdc.weflow_server.config.security.CustomUserDetails;
 import com.rdc.weflow_server.dto.project.*;
 import com.rdc.weflow_server.entity.company.Company;
 import com.rdc.weflow_server.entity.project.Project;
+import com.rdc.weflow_server.entity.project.ProjectMember;
+import com.rdc.weflow_server.entity.project.ProjectRole;
 import com.rdc.weflow_server.entity.project.ProjectStatus;
+import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.entity.user.UserRole;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.project.CompanyRepository;
+import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
 import com.rdc.weflow_server.repository.project.ProjectRepository;
+import com.rdc.weflow_server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +27,8 @@ public class AdminProjectService {
 
     private final ProjectRepository projectRepository;
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     // 프로젝트 생성
     public AdminProjectCreateResponseDto createProject(
@@ -130,5 +137,41 @@ public class AdminProjectService {
         project.softDelete();
 
         projectRepository.save(project);
+    }
+
+    // 프로젝트 멤버 추가
+    public AdminProjectMemberAddResponseDto addProjectMember(Long projectId, AdminProjectMemberAddRequestDto request, CustomUserDetails user) {
+    
+        // 1) 관리자만 가능
+        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
+            throw new BusinessException(ErrorCode.PROJECT_MEMBER_ADD_FORBIDDEN);
+        }
+        
+        // 2) 프로젝트 조회
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+        
+        // 3) 유저 조회
+        User targetUser = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // 4) 이미 멤버인지 확인
+        boolean exists = project.getProjectMembers().stream()
+                .anyMatch(member -> member.getUser().getId().equals(request.getUserId()));
+
+        if (exists) {
+            throw new BusinessException(ErrorCode.PROJECT_MEMBER_ALREADY_EXISTS);
+        }
+
+        // 5) 멤버 추가
+        ProjectMember member = ProjectMember.create(
+                project,
+                targetUser,
+                ProjectRole.valueOf(request.getProjectRole())
+        );
+
+        projectMemberRepository.save(member);
+
+        return AdminProjectMemberAddResponseDto.of(targetUser.getId(), request.getProjectRole());
     }
 }

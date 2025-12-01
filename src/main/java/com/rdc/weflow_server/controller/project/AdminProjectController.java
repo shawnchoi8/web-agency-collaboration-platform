@@ -72,4 +72,15 @@ public class AdminProjectController {
         adminProjectService.deleteProject(projectId, user);
         return ApiResponse.success("PROJECT_DELETED", null);
     }
+
+    // 프로젝트 멤버 추가
+    @PostMapping("/{projectId}/members")
+    public ApiResponse<AdminProjectMemberAddResponseDto> addProjectMember(
+            @PathVariable Long projectId,
+            @RequestBody AdminProjectMemberAddRequestDto request,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        AdminProjectMemberAddResponseDto response = adminProjectService.addProjectMember(projectId, request, user);
+        return ApiResponse.success("PROJECT_MEMBER_ADDED", response);
+    }
 }
