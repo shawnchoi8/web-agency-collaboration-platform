@@ -95,4 +95,15 @@ public class AdminProjectController {
                 adminProjectService.getProjectMembers(projectId, user)
         );
     }
+
+    // 프로젝트 멤버 삭제
+    @DeleteMapping("/{projectId}/members/{userId}")
+    public ApiResponse<Void> removeProjectMember(
+            @PathVariable Long projectId,
+            @PathVariable Long userId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        adminProjectService.removeProjectMember(projectId, userId, user);
+        return ApiResponse.success("PROJECT_MEMBER_REMOVED", null);
+    }
 }

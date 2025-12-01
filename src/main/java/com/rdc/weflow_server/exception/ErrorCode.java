@@ -46,7 +46,8 @@ public enum ErrorCode {
     PROJECT_MEMBER_ADD_FORBIDDEN(HttpStatus.FORBIDDEN, "PROJECT_MEMBER_003", "프로젝트 멤버 추가 권한이 없습니다."),
     PROJECT_MEMBER_REMOVE_FORBIDDEN(HttpStatus.FORBIDDEN, "PROJECT_MEMBER_004", "프로젝트 멤버 삭제 권한이 없습니다."),
     PROJECT_MEMBER_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT_MEMBER_005", "프로젝트에 추가할 사용자를 찾을 수 없습니다."),
-    PROJECT_MEMBER_ROLE_INVALID(HttpStatus.BAD_REQUEST, "PROJECT_MEMBER_006", "유효하지 않은 프로젝트 역할입니다.");
+    PROJECT_MEMBER_ROLE_INVALID(HttpStatus.BAD_REQUEST, "PROJECT_MEMBER_006", "유효하지 않은 프로젝트 역할입니다."),
+    PROJECT_MEMBER_ALREADY_REMOVED(HttpStatus.BAD_REQUEST, "PROJECT_MEMBER_007", "이미 삭제된 멤버입니다.");
 
     private final HttpStatus status;
     private final String code;

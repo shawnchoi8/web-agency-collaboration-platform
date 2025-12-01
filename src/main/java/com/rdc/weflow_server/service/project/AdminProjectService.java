@@ -191,4 +191,29 @@ public class AdminProjectService {
 
         return AdminProjectMemberListResponseDto.of(members);
     }
+
+    // 프로젝트 멤버 삭제
+    public void removeProjectMember(Long projectId, Long userId, CustomUserDetails user) {
+
+        // 관리자 체크
+        validateAdmin(user);
+
+        // 1) 프로젝트 존재 여부 확인
+        projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+        // 2) 멤버 조회 (삭제 포함)
+        ProjectMember member = projectMemberRepository
+                .findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_MEMBER_NOT_FOUND));
+
+        // 3) 이미 삭제된 멤버인지 확인
+        if (member.getDeletedAt() != null) {
+            throw new BusinessException(ErrorCode.PROJECT_MEMBER_ALREADY_REMOVED);
+        }
+
+        // 4) Soft Delete
+        member.softDelete();
+        projectMemberRepository.save(member);
+    }
 }

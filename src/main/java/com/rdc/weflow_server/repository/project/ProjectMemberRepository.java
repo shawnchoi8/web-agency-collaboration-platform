@@ -1,6 +1,5 @@
 package com.rdc.weflow_server.repository.project;
 
-import com.rdc.weflow_server.entity.project.Project;
 import com.rdc.weflow_server.entity.project.ProjectMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +32,12 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
             "JOIN fetch u.company c " +
             "WHERE pm.project.id = :projectId")
     List<ProjectMember> findAllByProjectIdIncludeDeleted(@Param("projectId") Long projectId);
+
+
+    @Query("SELECT pm FROM ProjectMember pm " +
+            "WHERE pm.project.id = :projectId AND pm.user.id = :userId")
+    Optional<ProjectMember> findByProjectIdAndUserId(
+            @Param("projectId") Long projectId,
+            @Param("userId") Long userId
+    );
 }
