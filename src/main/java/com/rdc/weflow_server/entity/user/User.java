@@ -41,9 +41,11 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
-    private UserStatus status;
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
 
     @Column
+    @Builder.Default
     private Boolean isTemporaryPassword = true;
 
     @Column

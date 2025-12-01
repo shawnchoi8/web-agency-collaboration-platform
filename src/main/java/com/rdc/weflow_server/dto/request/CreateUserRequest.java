@@ -1,5 +1,7 @@
 package com.rdc.weflow_server.dto.request;
 
+import com.rdc.weflow_server.entity.company.Company;
+import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.entity.user.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +23,7 @@ public class CreateUserRequest {
     private String email;
 
     @NotBlank(message = "비밀번호는 필수입니다")
-    private String password;
+    private String password; // 입력받은 그대로의 비밀번호 (암호화 전)
 
     private String phoneNumber;  // 선택사항
 
@@ -30,4 +32,16 @@ public class CreateUserRequest {
 
     @NotNull(message = "회사 ID는 필수입니다")
     private Long companyId;
+
+    // DTO -> Entity 변환 메서드
+    public User toEntity(Company company, String encodedPassword) {
+        return User.builder()
+                .name(this.name)
+                .email(this.email)
+                .password(encodedPassword)
+                .phoneNumber(this.phoneNumber)
+                .role(this.role)
+                .company(company)
+                .build();
+    }
 }
