@@ -6,7 +6,7 @@ import com.rdc.weflow_server.service.file.S3FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-//@RestController
+@RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 public class FileUploadController {
