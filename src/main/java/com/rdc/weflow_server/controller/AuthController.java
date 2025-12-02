@@ -1,0 +1,30 @@
+package com.rdc.weflow_server.controller;
+
+import com.rdc.weflow_server.dto.request.LoginRequest;
+import com.rdc.weflow_server.dto.response.LoginResponse;
+import com.rdc.weflow_server.service.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final AuthService authService;
+
+    /**
+     * 로그인
+     * POST /api/auth/login
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+}

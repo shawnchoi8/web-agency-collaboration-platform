@@ -57,4 +57,9 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user")
     private List<ProjectMember> projectMembers;
+
+    // 로그인 성공 시 시간 업데이트
+    public void updateLastLoginAt() {
+        this.lastLoginAt = LocalDateTime.now();
+    }
 }
