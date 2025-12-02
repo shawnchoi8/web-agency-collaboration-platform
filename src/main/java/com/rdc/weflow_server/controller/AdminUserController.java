@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.controller;
 
+import com.rdc.weflow_server.common.api.ApiResponse;
 import com.rdc.weflow_server.dto.request.CreateUserRequest;
 import com.rdc.weflow_server.dto.response.UserResponse;
 import com.rdc.weflow_server.service.UserService;
@@ -24,10 +25,11 @@ public class AdminUserController {
      * POST /api/admin/users
      */
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
             @Valid @RequestBody CreateUserRequest request) {
 
         UserResponse response = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("회원이 성공적으로 생성되었습니다.", response));
     }
 }

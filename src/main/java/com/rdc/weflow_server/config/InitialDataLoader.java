@@ -25,6 +25,10 @@ public class InitialDataLoader implements CommandLineRunner {
 
         // 이미 관리자 있으면 아무것도 안 함
         if (userRepository.existsByEmail("admin@bn-system.com")) {
+            System.out.println("========================================");
+            System.out.println("관리자 계정이 이미 존재합니다.");
+            System.out.println("이메일: admin@bn-system.com");
+            System.out.println("========================================");
             return;
         }
 

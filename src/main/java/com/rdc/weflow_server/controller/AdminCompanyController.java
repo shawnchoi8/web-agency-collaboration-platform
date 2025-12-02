@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.controller;
 
+import com.rdc.weflow_server.common.api.ApiResponse;
 import com.rdc.weflow_server.dto.request.CreateCompanyRequest;
 import com.rdc.weflow_server.dto.response.CompanyResponse;
 import com.rdc.weflow_server.service.CompanyService;
@@ -21,10 +22,11 @@ public class AdminCompanyController {
      * POST /api/admin/companies
      */
     @PostMapping
-    public ResponseEntity<CompanyResponse> createCompany(
+    public ResponseEntity<ApiResponse<CompanyResponse>> createCompany(
             @Valid @RequestBody CreateCompanyRequest request) {
 
         CompanyResponse response = companyService.createCompany(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("회사가 성공적으로 생성되었습니다.", response));
     }
 }

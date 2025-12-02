@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.controller;
 
+import com.rdc.weflow_server.common.api.ApiResponse;
 import com.rdc.weflow_server.dto.request.LoginRequest;
 import com.rdc.weflow_server.dto.response.LoginResponse;
 import com.rdc.weflow_server.service.AuthService;
@@ -23,8 +24,8 @@ public class AuthController {
      * POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("로그인에 성공했습니다.", response));
     }
 }
