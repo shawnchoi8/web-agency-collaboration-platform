@@ -5,7 +5,7 @@ import com.rdc.weflow_server.dto.response.CompanyResponse;
 import com.rdc.weflow_server.entity.company.Company;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
-import com.rdc.weflow_server.repository.CompanyRepository;
+import com.rdc.weflow_server.repository.company.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

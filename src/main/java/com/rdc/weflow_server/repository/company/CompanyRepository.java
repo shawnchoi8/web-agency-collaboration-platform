@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.repository;
+package com.rdc.weflow_server.repository.company;
 
 import com.rdc.weflow_server.entity.company.Company;
 import org.springframework.data.jpa.repository.JpaRepository;

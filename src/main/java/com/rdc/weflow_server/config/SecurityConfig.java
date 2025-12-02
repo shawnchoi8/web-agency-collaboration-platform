@@ -2,7 +2,7 @@ package com.rdc.weflow_server.config;
 
 import com.rdc.weflow_server.common.auth.JwtAuthenticationFilter;
 import com.rdc.weflow_server.common.auth.JwtTokenProvider;
-import com.rdc.weflow_server.repository.UserRepository;
+import com.rdc.weflow_server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

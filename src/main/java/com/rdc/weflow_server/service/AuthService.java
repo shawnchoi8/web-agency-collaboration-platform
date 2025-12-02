@@ -7,7 +7,7 @@ import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.entity.user.UserStatus;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
-import com.rdc.weflow_server.repository.UserRepository;
+import com.rdc.weflow_server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
