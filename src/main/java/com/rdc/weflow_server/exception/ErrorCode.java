@@ -29,7 +29,25 @@ public enum ErrorCode {
     STEP_NOT_FOUND(HttpStatus.NOT_FOUND, "STEP_001", "단계를 찾을 수 없습니다."),
 
     // Notification
-    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION_001", "알림을 찾을 수 없습니다.");
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION_001", "알림을 찾을 수 없습니다."),
+
+    // Checklist
+    CHECKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "CHECKLIST_001", "체크리스트를 찾을 수 없습니다."),
+    CHECKLIST_LOCKED(HttpStatus.BAD_REQUEST, "CHECKLIST_002", "잠금 처리된 체크리스트는 수정할 수 없습니다."),
+
+    // Checklist Question
+    CHECKLIST_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "CHECKLIST_QUESTION_001", "체크리스트 질문을 찾을 수 없습니다."),
+    CHECKLIST_QUESTION_NOT_IN_CHECKLIST(HttpStatus.BAD_REQUEST, "CHECKLIST_QUESTION_002", "체크리스트에 속하지 않은 질문입니다."),
+
+    // Checklist Option
+    CHECKLIST_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "CHECKLIST_OPTION_001", "체크리스트 옵션을 찾을 수 없습니다."),
+    CHECKLIST_OPTION_NOT_IN_QUESTION(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_002", "질문에 속하지 않은 옵션입니다."),
+    CHECKLIST_OPTION_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_003", "해당 질문 타입에는 옵션을 추가할 수 없습니다."),
+    CHECKLIST_INVALID_OPTION_SEQUENCE(HttpStatus.BAD_REQUEST, "CHECKLIST_OPTION_004", "옵션 순서가 올바르지 않습니다."),
+
+    // Checklist Answer
+    REQUIRED_ANSWER_INPUT(HttpStatus.BAD_REQUEST, "CHECKLIST_ANSWER_001", "해당 선택지는 추가 입력이 필요합니다."),
+    INVALID_ANSWER_INPUT(HttpStatus.BAD_REQUEST, "CHECKLIST_ANSWER_002", "해당 선택지에는 추가 입력을 허용하지 않습니다.");
 
     private final HttpStatus status;
     private final String code;
