@@ -27,7 +27,7 @@ public class ActivityLog extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ActionType actionType;
 
-    @Column
+    @Column(name = "target_table", length = 100)
     @Enumerated(EnumType.STRING)
     private TargetTable targetTable;
 

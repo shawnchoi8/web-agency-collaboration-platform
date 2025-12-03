@@ -18,6 +18,7 @@ public enum ActionType {
     DOWNLOAD,
 
     // 기타
-    REMOVE
+    REMOVE,
+    SUBMIT
 }
 
