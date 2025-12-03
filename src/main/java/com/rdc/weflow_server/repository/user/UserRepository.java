@@ -18,4 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 삭제되지 않은 회원만 조회 (관리자 회원 목록용)
     List<User> findAllByDeletedAtIsNull();
+
+    // 전화번호 중복 체크
+    boolean existsByPhoneNumber(String phoneNumber);
 }

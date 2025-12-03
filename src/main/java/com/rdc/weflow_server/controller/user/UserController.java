@@ -2,14 +2,15 @@ package com.rdc.weflow_server.controller.user;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
 import com.rdc.weflow_server.config.security.CustomUserDetails;
+import com.rdc.weflow_server.dto.user.request.ChangePasswordRequest;
+import com.rdc.weflow_server.dto.user.request.UpdateUserRequest;
 import com.rdc.weflow_server.dto.user.response.UserResponse;
 import com.rdc.weflow_server.service.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +33,42 @@ public class UserController {
         // 2. 응답 반환
         return ResponseEntity.ok(
                 ApiResponse.success("내 정보 조회 성공", response)
+        );
+    }
+
+    /**
+     * 내 정보 수정
+     * PATCH /api/users/me
+     */
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody UpdateUserRequest request
+    ) {
+        // 1. Service 호출 (ID와 수정할 데이터 전달)
+        UserResponse response = userService.updateMyInfo(userDetails.getId(), request);
+
+        // 2. 응답 반환
+        return ResponseEntity.ok(
+                ApiResponse.success("내 정보 수정 성공", response)
+        );
+    }
+
+    /**
+     * 비밀번호 변경
+     * PATCH /api/users/me/password
+     */
+    @PatchMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @Valid ChangePasswordRequest request
+    ) {
+        // 1. Service 호출
+        userService.changePassword(userDetails.getId(), request);
+
+        // 2. 응답 반환 (성공 시 데이터 없음)
+        return ResponseEntity.ok(
+                ApiResponse.success("비밀번호 변경 성공", null)
         );
     }
 }
