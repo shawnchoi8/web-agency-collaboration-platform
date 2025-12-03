@@ -1,7 +1,7 @@
-package com.rdc.weflow_server.service;
+package com.rdc.weflow_server.service.user;
 
-import com.rdc.weflow_server.dto.request.CreateUserRequest;
-import com.rdc.weflow_server.dto.response.UserResponse;
+import com.rdc.weflow_server.dto.user.request.CreateUserRequest;
+import com.rdc.weflow_server.dto.user.response.UserResponse;
 import com.rdc.weflow_server.entity.company.Company;
 import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.exception.BusinessException;
@@ -48,5 +48,22 @@ public class UserService {
 
         // 6. Entity → Response 변환
         return UserResponse.from(savedUser);
+    }
+
+    /**
+     * 내 정보 조회
+     */
+    public UserResponse getMyInfo(Long userId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // 2. 삭제된 사용자인지 체크
+        if (user.getDeletedAt() != null) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_DELETED);
+        }
+
+        // 3. DTO 변환 후 반환
+        return UserResponse.from(user);
     }
 }

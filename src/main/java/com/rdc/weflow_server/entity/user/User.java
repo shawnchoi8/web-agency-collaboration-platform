@@ -62,4 +62,16 @@ public class User extends BaseEntity {
     public void updateLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
     }
+
+    // 내 정보 수정 (이름, 전화번호)
+    public void updateMyInfo(String name, String phoneNumber) {
+        if (name != null) this.name = name;
+        if (phoneNumber != null) this.phoneNumber = phoneNumber;
+    }
+
+    // 비밀번호 변경 (암호화된 비밀번호로 변경)
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+        this.isTemporaryPassword = false;  // 임시 비밀번호 해제
+    }
 }

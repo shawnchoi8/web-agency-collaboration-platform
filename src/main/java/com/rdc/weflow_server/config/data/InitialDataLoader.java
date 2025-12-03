@@ -1,4 +1,4 @@
-package com.rdc.weflow_server.config;
+package com.rdc.weflow_server.config.data;
 
 import com.rdc.weflow_server.entity.company.Company;
 import com.rdc.weflow_server.entity.company.CompanyStatus;
@@ -28,6 +28,7 @@ public class InitialDataLoader implements CommandLineRunner {
             System.out.println("========================================");
             System.out.println("관리자 계정이 이미 존재합니다.");
             System.out.println("이메일: admin@bn-system.com");
+            System.out.println("초기 비밀번호: admin123");
             System.out.println("========================================");
             return;
         }
@@ -48,10 +49,10 @@ public class InitialDataLoader implements CommandLineRunner {
                 .email("admin@bn-system.com")
                 .password(passwordEncoder.encode("admin123"))
                 .name("시스템관리자")
-                .phoneNumber("010-0000-0000")
+                .phoneNumber("02-978-3140")
                 .role(UserRole.SYSTEM_ADMIN)
                 .status(UserStatus.ACTIVE)
-                .isTemporaryPassword(true)
+                .isTemporaryPassword(false)
                 .company(company)
                 .build();
         userRepository.save(admin);

@@ -1,7 +1,7 @@
-package com.rdc.weflow_server.service;
+package com.rdc.weflow_server.service.company;
 
-import com.rdc.weflow_server.dto.request.CreateCompanyRequest;
-import com.rdc.weflow_server.dto.response.CompanyResponse;
+import com.rdc.weflow_server.dto.company.request.CreateCompanyRequest;
+import com.rdc.weflow_server.dto.company.response.CompanyResponse;
 import com.rdc.weflow_server.entity.company.Company;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
