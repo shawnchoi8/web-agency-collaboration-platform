@@ -4,6 +4,8 @@ import com.rdc.weflow_server.entity.BaseEntity;
 import com.rdc.weflow_server.entity.project.Project;
 import com.rdc.weflow_server.entity.user.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "activity_logs")
 @Entity
+@Builder
+@AllArgsConstructor
 public class ActivityLog extends BaseEntity {
 
     @Id
