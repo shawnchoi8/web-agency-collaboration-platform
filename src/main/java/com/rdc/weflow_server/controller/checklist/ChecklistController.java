@@ -1,6 +1,7 @@
 package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
+import com.rdc.weflow_server.config.security.CustomUserDetails;
 import com.rdc.weflow_server.dto.checklist.request.ChecklistAnswerRequest;
 import com.rdc.weflow_server.dto.checklist.request.ChecklistCreateRequest;
 import com.rdc.weflow_server.dto.checklist.request.ChecklistUpdateRequest;
@@ -8,6 +9,7 @@ import com.rdc.weflow_server.dto.checklist.response.ChecklistDetailResponse;
 import com.rdc.weflow_server.dto.checklist.response.ChecklistResponse;
 import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.service.checklist.ChecklistService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +24,15 @@ public class ChecklistController {
 
     // 체크리스트 생성
     @PostMapping
-    public ApiResponse<Long> createChecklist(@RequestBody ChecklistCreateRequest request) {
-        Long id = checklistService.createChecklist(request);
+    public ApiResponse<Long> createChecklist(
+            @RequestBody ChecklistCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest servletRequest) {
+        Long id = checklistService.createChecklist(
+                request,
+                user.getUser(),
+                servletRequest.getRemoteAddr()
+        );
         return ApiResponse.success("CHECKLIST_CREATED", id);
     }
 
@@ -47,28 +56,46 @@ public class ChecklistController {
 
     // 체크리스트 수정
     @PatchMapping("/{checklistId}")
-    public ApiResponse<Void> updateChecklist(
+    public ApiResponse<Long> updateChecklist(
             @PathVariable Long checklistId,
-            @RequestBody ChecklistUpdateRequest request
+            @RequestBody ChecklistUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest servletRequest
     ) {
-        checklistService.updateChecklist(checklistId, request);
-        return ApiResponse.success("CHECKLIST_UPDATED", null);
+        Long id = checklistService.updateChecklist(
+                checklistId,
+                request,
+                user.getUser(),
+                servletRequest.getRemoteAddr());
+        return ApiResponse.success("CHECKLIST_UPDATED", id);
     }
 
     // 체크리스트 삭제
     @DeleteMapping("/{checklistId}")
-    public ApiResponse<Void> deleteChecklist(@PathVariable Long checklistId) {
-        checklistService.deleteChecklist(checklistId);
-        return ApiResponse.success("CHECKLIST_DELETED", null);
+    public ApiResponse<Long> deleteChecklist(
+            @PathVariable Long checklistId,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest servletRequest
+    ) {
+        Long id = checklistService.deleteChecklist(
+                checklistId,
+                user.getUser(),
+                servletRequest.getRemoteAddr());
+        return ApiResponse.success("CHECKLIST_DELETED", id);
     }
 
     // 체크리스트 답변 제출
     @PostMapping("/answers")
-    public ApiResponse<Void> submitChecklistAnswers(
+    public ApiResponse<Long> submitChecklistAnswers(
             @RequestBody ChecklistAnswerRequest request,
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest servletRequest
     ) {
-        checklistService.submitChecklistAnswers(request, user);
-        return ApiResponse.success("CHECKLIST_ANSWER_SUBMITTED", null);
+        Long id = checklistService.submitChecklistAnswers(
+                request,
+                user.getUser(),
+                servletRequest.getRemoteAddr()
+        );
+        return ApiResponse.success("CHECKLIST_ANSWER_SUBMITTED", id);
     }
 }

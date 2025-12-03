@@ -10,6 +10,8 @@ import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistAnswer;
 import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.entity.log.ActionType;
+import com.rdc.weflow_server.entity.log.TargetTable;
 import com.rdc.weflow_server.entity.step.Step;
 import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.exception.BusinessException;
@@ -19,6 +21,7 @@ import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
 import com.rdc.weflow_server.repository.step.StepRepository;
+import com.rdc.weflow_server.service.log.ActivityLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,10 +40,10 @@ public class ChecklistService {
     private final ChecklistOptionRepository optionRepository;
     private final StepRepository stepRepository;
     private final ChecklistAnswerRepository answerRepository;
+    private final ActivityLogService  activityLogService;
 
     // 체크리스트 생성
-    public Long createChecklist(ChecklistCreateRequest request) {
-
+    public Long createChecklist(ChecklistCreateRequest request, User user, String ip) {
         // Step 가져오기
         Step step = stepRepository.findById(request.getStepId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.STEP_NOT_FOUND));
@@ -63,6 +66,16 @@ public class ChecklistService {
 
             copyTemplate(template, checklist);
         }
+
+        // 로그 생성
+        activityLogService.createLog(
+                ActionType.CREATE,
+                TargetTable.CHECKLIST,
+                checklist.getId(),
+                user.getId(),
+                step.getProject().getId(),
+                ip
+        );
 
         return checklist.getId();
     }
@@ -104,7 +117,7 @@ public class ChecklistService {
     }
 
     // 체크리스트 수정
-    public void updateChecklist(Long checklistId, ChecklistUpdateRequest request) {
+    public Long updateChecklist(Long checklistId, ChecklistUpdateRequest request, User user, String ip) {
         Checklist checklist = checklistRepository.findById(checklistId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -133,10 +146,22 @@ public class ChecklistService {
             // 단계 업데이트
             checklist.changeStep(newStep);
         }
+
+        // 로그 생성
+        activityLogService.createLog(
+                ActionType.UPDATE,
+                TargetTable.CHECKLIST,
+                checklist.getId(),
+                user.getId(),
+                checklist.getStep().getProject().getId(),
+                ip
+        );
+
+        return checklist.getId();
     }
 
     // 체크리스트 삭제
-    public void deleteChecklist(Long checklistId) {
+    public Long deleteChecklist(Long checklistId, User user, String ip) {
         Checklist checklist = checklistRepository.findById(checklistId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -145,12 +170,24 @@ public class ChecklistService {
             throw new BusinessException(ErrorCode.CHECKLIST_LOCKED);
         }
 
+        Long projectId = checklist.getStep().getProject().getId();
+
         checklistRepository.delete(checklist);
+
+        // 로그 생성
+        activityLogService.createLog(
+                ActionType.DELETE,
+                TargetTable.CHECKLIST,
+                checklistId,
+                user.getId(),
+                projectId,
+                ip
+        );
+        return checklistId;
     }
 
     // 체크리스트 답변 제출
-    public void submitChecklistAnswers(ChecklistAnswerRequest request, User user) {
-
+    public Long submitChecklistAnswers(ChecklistAnswerRequest request, User user, String ip) {
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -199,10 +236,21 @@ public class ChecklistService {
                     .build();
 
             answerRepository.save(answer);
+
+            // 로그 생성
+            activityLogService.createLog(
+                    ActionType.SUBMIT,
+                    TargetTable.CHECKLIST,
+                    checklist.getId(),
+                    user.getId(),
+                    checklist.getStep().getProject().getId(),
+                    ip
+            );
         }
 
         // 6) 답변 제출 후 체크리스트 잠금
         checklist.lockChecklist();
+        return checklist.getId();
     }
 
     // 템플릿 복사
