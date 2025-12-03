@@ -47,28 +47,28 @@ public class ChecklistController {
 
     // 체크리스트 수정
     @PatchMapping("/{checklistId}")
-    public ApiResponse<Void> updateChecklist(
+    public ApiResponse<Long> updateChecklist(
             @PathVariable Long checklistId,
             @RequestBody ChecklistUpdateRequest request
     ) {
-        checklistService.updateChecklist(checklistId, request);
-        return ApiResponse.success("CHECKLIST_UPDATED", null);
+        Long id = checklistService.updateChecklist(checklistId, request);
+        return ApiResponse.success("CHECKLIST_UPDATED", id);
     }
 
     // 체크리스트 삭제
     @DeleteMapping("/{checklistId}")
-    public ApiResponse<Void> deleteChecklist(@PathVariable Long checklistId) {
-        checklistService.deleteChecklist(checklistId);
-        return ApiResponse.success("CHECKLIST_DELETED", null);
+    public ApiResponse<Long> deleteChecklist(@PathVariable Long checklistId) {
+        Long id = checklistService.deleteChecklist(checklistId);
+        return ApiResponse.success("CHECKLIST_DELETED", id);
     }
 
     // 체크리스트 답변 제출
     @PostMapping("/answers")
-    public ApiResponse<Void> submitChecklistAnswers(
+    public ApiResponse<Long> submitChecklistAnswers(
             @RequestBody ChecklistAnswerRequest request,
             @AuthenticationPrincipal User user
     ) {
-        checklistService.submitChecklistAnswers(request, user);
-        return ApiResponse.success("CHECKLIST_ANSWER_SUBMITTED", null);
+        Long id = checklistService.submitChecklistAnswers(request, user);
+        return ApiResponse.success("CHECKLIST_ANSWER_SUBMITTED", id);
     }
 }

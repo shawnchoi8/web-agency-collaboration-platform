@@ -36,8 +36,8 @@ public class ActionLogAspect {
             Long userId = user.getId();
 
             // 2. 리턴 객체에서 targetId 추출
-            Long targetId = getFieldValue(result, actionLog.targetIdField());
-            Long projectId = getFieldValue(result, actionLog.projectIdField());
+            Long targetId = extractId(result, actionLog.targetIdField());
+            Long projectId = extractId(result, actionLog.projectIdField());
 
             // 3. IP 자동 추출
             String ip = actionLog.logIp() ? request.getRemoteAddr() : null;
@@ -58,10 +58,21 @@ public class ActionLogAspect {
     }
 
     // 리플렉션 기반 안전한 값 추출
-    private Long getFieldValue(Object result, String fieldName) {
+    private Long extractId(Object result, String fieldName) {
         if (result == null) return null;
-        BeanWrapperImpl wrapper = new BeanWrapperImpl(result);
-        Object value = wrapper.getPropertyValue(fieldName);
-        return (value instanceof Number) ? ((Number) value).longValue() : null;
+
+        // Case 1: Long 반환 → 그대로 사용
+        if (result instanceof Long id) return id;
+
+        // Case 2: DTO/Entity에서 field 꺼내기
+        try {
+            BeanWrapperImpl wrapper = new BeanWrapperImpl(result);
+            Object value = wrapper.getPropertyValue(fieldName);
+            if (value instanceof Number num) {
+                return num.longValue();
+            }
+        } catch (Exception ignored) {}
+
+        return null;
     }
 }

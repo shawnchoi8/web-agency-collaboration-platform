@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.service.checklist;
 
+import com.rdc.weflow_server.aop.log.ActionLog;
 import com.rdc.weflow_server.dto.checklist.request.ChecklistAnswerRequest;
 import com.rdc.weflow_server.dto.checklist.request.ChecklistCreateRequest;
 import com.rdc.weflow_server.dto.checklist.request.ChecklistUpdateRequest;
@@ -10,6 +11,8 @@ import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistAnswer;
 import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.entity.log.ActionType;
+import com.rdc.weflow_server.entity.log.TargetTable;
 import com.rdc.weflow_server.entity.step.Step;
 import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.exception.BusinessException;
@@ -39,8 +42,11 @@ public class ChecklistService {
     private final ChecklistAnswerRepository answerRepository;
 
     // 체크리스트 생성
+    @ActionLog(
+            actionType = ActionType.CREATE,
+            targetTable = TargetTable.CHECKLIST
+    )
     public Long createChecklist(ChecklistCreateRequest request) {
-
         // Step 가져오기
         Step step = stepRepository.findById(request.getStepId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.STEP_NOT_FOUND));
@@ -104,7 +110,11 @@ public class ChecklistService {
     }
 
     // 체크리스트 수정
-    public void updateChecklist(Long checklistId, ChecklistUpdateRequest request) {
+    @ActionLog(
+            actionType = ActionType.UPDATE,
+            targetTable = TargetTable.CHECKLIST
+    )
+    public Long updateChecklist(Long checklistId, ChecklistUpdateRequest request) {
         Checklist checklist = checklistRepository.findById(checklistId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -133,10 +143,15 @@ public class ChecklistService {
             // 단계 업데이트
             checklist.changeStep(newStep);
         }
+        return checklist.getId();
     }
 
     // 체크리스트 삭제
-    public void deleteChecklist(Long checklistId) {
+    @ActionLog(
+            actionType = ActionType.DELETE,
+            targetTable = TargetTable.CHECKLIST
+    )
+    public Long deleteChecklist(Long checklistId) {
         Checklist checklist = checklistRepository.findById(checklistId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -146,11 +161,15 @@ public class ChecklistService {
         }
 
         checklistRepository.delete(checklist);
+        return checklistId;
     }
 
     // 체크리스트 답변 제출
-    public void submitChecklistAnswers(ChecklistAnswerRequest request, User user) {
-
+    @ActionLog(
+            actionType = ActionType.UPDATE,
+            targetTable = TargetTable.CHECKLIST
+    )
+    public Long submitChecklistAnswers(ChecklistAnswerRequest request, User user) {
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -203,6 +222,7 @@ public class ChecklistService {
 
         // 6) 답변 제출 후 체크리스트 잠금
         checklist.lockChecklist();
+        return checklist.getId();
     }
 
     // 템플릿 복사
