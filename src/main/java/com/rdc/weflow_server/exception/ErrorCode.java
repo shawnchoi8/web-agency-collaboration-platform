@@ -19,6 +19,7 @@ public enum ErrorCode {
     POST_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "POST_002", "이미 삭제된 게시글입니다."),
     POST_ALREADY_CLOSED(HttpStatus.BAD_REQUEST, "POST_003", "이미 완료된 게시글입니다."),
     INVALID_POST_STATUS(HttpStatus.BAD_REQUEST, "POST_004", "게시글 상태가 올바르지 않습니다."),
+    POST_CANNOT_EDIT(HttpStatus.FORBIDDEN, "POST_005", "상대방이 게시글에 참여하여 수정할 수 없습니다."),
 
     // Post Question
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "QUESTION_001", "질문을 찾을 수 없습니다."),

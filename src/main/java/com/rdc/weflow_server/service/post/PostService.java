@@ -366,6 +366,31 @@ public class PostService {
             throw new BusinessException(ErrorCode.POST_NOT_FOUND);
         }
 
+        // 반대편 role 참여 여부 확인
+        User postAuthor = post.getUser();
+        UserRole authorRole = postAuthor.getRole();
+        UserRole oppositeRole = (authorRole == UserRole.AGENCY) ? UserRole.CLIENT : UserRole.AGENCY;
+
+        // 1. 댓글에서 반대편 role 참여 확인
+        boolean hasOppositeComment = commentRepository.findAllByPostId(postId).stream()
+                .anyMatch(comment -> comment.getUser().getRole() == oppositeRole);
+
+        // 2. 질문 답변에서 반대편 role 참여 확인
+        List<PostQuestion> questions = postQuestionRepository.findByPostId(postId);
+        boolean hasOppositeAnswer = questions.stream()
+                .anyMatch(question -> postAnswerRepository.findByQuestionId(question.getId())
+                        .map(answer -> answer.getUser().getRole() == oppositeRole)
+                        .orElse(false));
+
+        // 3. 답글(자식 게시글)에서 반대편 role 참여 확인
+        boolean hasOppositeReply = post.getChildren().stream()
+                .anyMatch(child -> child.getUser().getRole() == oppositeRole);
+
+        // 반대편이 참여했다면 수정 불가
+        if (hasOppositeComment || hasOppositeAnswer || hasOppositeReply) {
+            throw new BusinessException(ErrorCode.POST_CANNOT_EDIT);
+        }
+
         // 제목 및 내용 수정
         if (request.getTitle() != null) {
             post.updateTitle(request.getTitle());
