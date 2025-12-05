@@ -4,6 +4,7 @@ import com.rdc.weflow_server.config.security.CustomUserDetails;
 import com.rdc.weflow_server.dto.post.*;
 import com.rdc.weflow_server.entity.attachment.Attachment;
 import com.rdc.weflow_server.entity.comment.Comment;
+import com.rdc.weflow_server.entity.notification.NotificationType;
 import com.rdc.weflow_server.entity.post.*;
 import com.rdc.weflow_server.entity.project.ProjectStatus;
 import com.rdc.weflow_server.entity.step.Step;
@@ -16,10 +17,12 @@ import com.rdc.weflow_server.repository.comment.CommentRepository;
 import com.rdc.weflow_server.repository.post.PostAnswerRepository;
 import com.rdc.weflow_server.repository.post.PostQuestionRepository;
 import com.rdc.weflow_server.repository.post.PostRepository;
+import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
 import com.rdc.weflow_server.repository.step.StepRepository;
 import com.rdc.weflow_server.service.log.ActivityLogService;
 import com.rdc.weflow_server.entity.log.ActionType;
 import com.rdc.weflow_server.entity.log.TargetTable;
+import com.rdc.weflow_server.service.notification.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,6 +43,8 @@ public class PostService {
     private final PostAnswerRepository postAnswerRepository;
     private final StepRepository stepRepository;
     private final CommentRepository commentRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final NotificationService notificationService;
     private final ActivityLogService activityLogService;
 
     /**
@@ -353,6 +358,25 @@ public class PostService {
                 httpRequest.getRemoteAddr()
         );
 
+        // 알림 발송 (작성자 본인 제외 프로젝트 멤버 전체에게 알림)
+        List<User> projectMembers = projectMemberRepository
+                .findByProjectIdAndDeletedAtIsNull(projectId).stream()
+                .map(pm -> pm.getUser())
+                .filter(member -> !member.getId().equals(user.getId())) // 본인 제외
+                .toList();
+
+        for (User member : projectMembers) {
+            notificationService.send(
+                    member,                         // Receiver (Entity 직접 전달)
+                    NotificationType.NEW_POST,      // 답글도 똑같은 '게시글'로 취급
+                    "새 게시글 작성",                // Title
+                    user.getName() + "님이 \"" + post.getTitle() + "\" 게시글을 작성했습니다.", // Message
+                    step.getProject(),              // Project
+                    post,                           // Post
+                    null                            // StepRequest
+            );
+        }
+
         // 생성된 게시글 ID 반환
         return PostCreateResponse.builder()
                 .postId(post.getId())
@@ -607,6 +631,19 @@ public class PostService {
                 projectId,
                 httpRequest.getRemoteAddr()
         );
+
+        // 알림 발송 (게시글 작성자에게만 알림)
+        if (!postAuthor.getId().equals(currentUser.getId())) {
+            notificationService.send(
+                    postAuthor,                     // Receiver (질문한 사람 = 게시글 작성자)
+                    NotificationType.NEW_COMMENT,   // Type (답변도 댓글/반응으로 취급)
+                    "새 답변 등록",                   // Title
+                    currentUser.getName() + "님이 질문에 답변을 남겼습니다.", // Message
+                    post.getStep().getProject(),    // Project Entity
+                    post,                           // Post Entity
+                    null                            // StepRequest
+            );
+        }
 
         // Response 생성
         return PostAnswerResponse.builder()

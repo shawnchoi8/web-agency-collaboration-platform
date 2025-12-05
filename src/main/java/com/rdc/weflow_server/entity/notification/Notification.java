@@ -26,6 +26,11 @@ public class Notification extends BaseEntity {
     @Column(nullable = false)
     private NotificationType type;  // 알림 종류
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private NotificationPriority priority = NotificationPriority.NORMAL;  // 알림 중요도
+
     @Column(nullable = false, length = 255)
     private String title;   // 알림 제목
 
@@ -36,7 +41,7 @@ public class Notification extends BaseEntity {
     private boolean isRead = false; // 읽음 여부
 
     @Column(name = "read_at")
-    private LocalDateTime readAt;    // 읽은 시간
+    private LocalDateTime readAt;   // 읽은 시간
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -62,4 +67,9 @@ public class Notification extends BaseEntity {
         }
     }
 
+    // 알림 읽지 않음 처리
+    public void markAsUnread() {
+        this.isRead = false;
+        this.readAt = null;
+    }
 }
