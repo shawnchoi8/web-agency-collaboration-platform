@@ -33,6 +33,12 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
             "WHERE pm.project.id = :projectId")
     List<ProjectMember> findAllByProjectIdIncludeDeleted(@Param("projectId") Long projectId);
 
+    /**
+     * 알림 발송용 멤버 조회 (가벼운 조회)
+     * - 삭제된 멤버 제외 (알림 발송 방지)
+     * - Company 정보 제외 (불필요한 Join 제거로 성능 최적화)
+     */
+    List<ProjectMember> findByProjectIdAndDeletedAtIsNull(Long projectId);
 
     @Query("SELECT pm FROM ProjectMember pm " +
             "WHERE pm.project.id = :projectId AND pm.user.id = :userId")
