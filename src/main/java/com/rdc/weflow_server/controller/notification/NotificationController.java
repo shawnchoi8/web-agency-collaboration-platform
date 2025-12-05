@@ -51,70 +51,7 @@ public class NotificationController {
     }
 
     /**
-     * 3. 알림 읽음 처리
-     * PATCH /api/notifications/{notificationId}/read
-     */
-    @PatchMapping("/{notificationId}/read")
-    public ApiResponse<Void> markAsRead(
-            @PathVariable Long notificationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        notificationService.markAsRead(userDetails.getId(), notificationId);
-        return ApiResponse.success("알림을 읽음 처리했습니다", null);
-    }
-
-    /**
-     * 4. 알림 읽지 않음 처리
-     * PATCH /api/notifications/{notificationId}/unread
-     */
-    @PatchMapping("/{notificationId}/unread")
-    public ApiResponse<Void> markAsUnread(
-            @PathVariable Long notificationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        notificationService.markAsUnread(userDetails.getId(), notificationId);
-        return ApiResponse.success("알림을 읽지 않음 처리했습니다", null);
-    }
-
-    /**
-     * 5. 알림 전체 읽음 처리
-     * PATCH /api/notifications/read-all
-     */
-    @PatchMapping("/read-all")
-    public ApiResponse<Void> markAllAsRead(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        notificationService.markAllAsRead(userDetails.getId());
-        return ApiResponse.success("모든 알림을 읽음 처리했습니다", null);
-    }
-
-    /**
-     * 6. 알림 삭제
-     * DELETE /api/notifications/{notificationId}
-     */
-    @DeleteMapping("/{notificationId}")
-    public ApiResponse<Void> deleteNotification(
-            @PathVariable Long notificationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        notificationService.deleteNotification(userDetails.getId(), notificationId);
-        return ApiResponse.success("알림을 삭제했습니다", null);
-    }
-
-    /**
-     * 7. 알림 전체 삭제
-     * DELETE /api/notifications/delete-all
-     */
-    @DeleteMapping("/delete-all")
-    public ApiResponse<Void> deleteAllNotifications(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        notificationService.deleteAllNotifications(userDetails.getId());
-        return ApiResponse.success("모든 알림을 삭제했습니다", null);
-    }
-
-    /**
-     * 8. 알림 상세 조회
+     * 3. 알림 상세 조회
      * GET /api/notifications/{notificationId}
      */
     @GetMapping("/{notificationId}")
@@ -127,5 +64,68 @@ public class NotificationController {
                 notificationId
         );
         return ApiResponse.success("알림 조회 성공", response);
+    }
+
+    /**
+     * 4. 알림 읽음 처리
+     * PATCH /api/notifications/{notificationId}/read
+     */
+    @PatchMapping("/{notificationId}/read")
+    public ApiResponse<Void> markAsRead(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        notificationService.markAsRead(userDetails.getId(), notificationId);
+        return ApiResponse.success("알림을 읽음 처리했습니다", null);
+    }
+
+    /**
+     * 5. 알림 읽지 않음 처리
+     * PATCH /api/notifications/{notificationId}/unread
+     */
+    @PatchMapping("/{notificationId}/unread")
+    public ApiResponse<Void> markAsUnread(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        notificationService.markAsUnread(userDetails.getId(), notificationId);
+        return ApiResponse.success("알림을 읽지 않음 처리했습니다", null);
+    }
+
+    /**
+     * 6. 알림 전체 읽음 처리
+     * PATCH /api/notifications/read-all
+     */
+    @PatchMapping("/read-all")
+    public ApiResponse<Void> markAllAsRead(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        notificationService.markAllAsRead(userDetails.getId());
+        return ApiResponse.success("모든 알림을 읽음 처리했습니다", null);
+    }
+
+    /**
+     * 7. 알림 삭제
+     * DELETE /api/notifications/{notificationId}
+     */
+    @DeleteMapping("/{notificationId}")
+    public ApiResponse<Void> deleteNotification(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        notificationService.deleteNotification(userDetails.getId(), notificationId);
+        return ApiResponse.success("알림을 삭제했습니다", null);
+    }
+
+    /**
+     * 8. 알림 전체 삭제
+     * DELETE /api/notifications/delete-all
+     */
+    @DeleteMapping("/delete-all")
+    public ApiResponse<Void> deleteAllNotifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        notificationService.deleteAllNotifications(userDetails.getId());
+        return ApiResponse.success("모든 알림을 삭제했습니다", null);
     }
 }
