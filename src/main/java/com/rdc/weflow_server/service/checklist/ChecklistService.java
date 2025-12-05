@@ -188,6 +188,7 @@ public class ChecklistService {
 
     // 체크리스트 답변 제출
     public Long submitChecklistAnswers(ChecklistAnswerRequest request, User user, String ip) {
+
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
@@ -220,20 +221,30 @@ public class ChecklistService {
                 throw new BusinessException(ErrorCode.REQUIRED_ANSWER_INPUT);
             }
 
-            // 4) 선택형인데 hasInput=false 인데 answerText가 들어오면 오류
+            // 4) 선택형인데 hasInput=false인데 answerText가 들어오면 오류
             if (option != null && !option.getHasInput() && item.getAnswerText() != null) {
                 throw new BusinessException(ErrorCode.INVALID_ANSWER_INPUT);
             }
 
-            // 5) 답변 저장
-            ChecklistAnswer answer = ChecklistAnswer.builder()
-                    .checklist(checklist)
-                    .question(question)
-                    .selectedOption(option)
-                    .answerText(item.getAnswerText())
-                    .answeredBy(user)
-                    .answeredAt(LocalDateTime.now())
-                    .build();
+            // 기존 답변 조회 (중복 생성 방지)
+            ChecklistAnswer answer =
+                    answerRepository.findByChecklist_IdAndQuestion_Id(checklist.getId(), question.getId())
+                            .orElse(null);
+
+            if (answer == null) {
+                // 신규 생성
+                answer = ChecklistAnswer.builder()
+                        .checklist(checklist)
+                        .question(question)
+                        .selectedOption(option)
+                        .answerText(item.getAnswerText())
+                        .answeredBy(user)
+                        .answeredAt(LocalDateTime.now())
+                        .build();
+            } else {
+                // 기존 답변 업데이트 (set 대신 도메인 메서드 사용)
+                answer.updateAnswer(option, item.getAnswerText(), user);
+            }
 
             answerRepository.save(answer);
 
@@ -248,8 +259,9 @@ public class ChecklistService {
             );
         }
 
-        // 6) 답변 제출 후 체크리스트 잠금
+        // 6) 모든 답변 제출 후 체크리스트 잠금
         checklist.lockChecklist();
+
         return checklist.getId();
     }
 
