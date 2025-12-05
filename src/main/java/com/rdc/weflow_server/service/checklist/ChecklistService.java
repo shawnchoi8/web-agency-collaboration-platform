@@ -56,16 +56,37 @@ public class ChecklistService {
                 .isLocked(false)
                 .step(step)
                 .build();
-
         checklistRepository.save(checklist);
 
-        // 템플릿 기반 복사
-        if (request.getTemplateId() != null) {
-            Checklist template = checklistRepository.findById(request.getTemplateId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
+        // 질문 저장
+        for (ChecklistCreateRequest.QuestionCreateRequest qReq : request.getQuestions()) {
+            ChecklistQuestion question = ChecklistQuestion.builder()
+                    .questionText(qReq.getQuestionText())
+                    .questionType(ChecklistQuestion.QuestionType.valueOf(qReq.getQuestionType()))
+                    .orderIndex(qReq.getOrderIndex())
+                    .checklist(checklist)
+                    .build();
 
-            copyTemplate(template, checklist);
+            checklist.getQuestions().add(question);
+            questionRepository.save(question);
+
+            // TEXT 타입은 options 없음
+            if (qReq.getOptions() != null) {
+                for (ChecklistCreateRequest.OptionCreateRequest optReq : qReq.getOptions()) {
+
+                    ChecklistOption option = ChecklistOption.builder()
+                            .optionText(optReq.getOptionText())
+                            .orderIndex(optReq.getOrderIndex())
+                            .hasInput(optReq.getHasInput())
+                            .question(question)
+                            .build();
+
+                    optionRepository.save(option);
+                }
+            }
         }
+
+        checklistRepository.save(checklist);
 
         // 로그 생성
         activityLogService.createLog(
@@ -263,36 +284,5 @@ public class ChecklistService {
         checklist.lockChecklist();
 
         return checklist.getId();
-    }
-
-
-    // 템플릿 복사
-    private void copyTemplate(Checklist template, Checklist newChecklist) {
-        // 부모 템플릿 연결
-        newChecklist.linkTemplate(template);
-
-        for (ChecklistQuestion q : template.getQuestions()) {
-
-            ChecklistQuestion copiedQ = ChecklistQuestion.builder()
-                    .checklist(newChecklist)
-                    .questionText(q.getQuestionText())
-                    .questionType(q.getQuestionType())
-                    .orderIndex(q.getOrderIndex())
-                    .build();
-
-            questionRepository.save(copiedQ);
-
-            for (ChecklistOption o : q.getOptions()) {
-
-                ChecklistOption copiedO = ChecklistOption.builder()
-                        .question(copiedQ)
-                        .optionText(o.getOptionText())
-                        .hasInput(o.getHasInput())
-                        .orderIndex(o.getOrderIndex())
-                        .build();
-
-                optionRepository.save(copiedO);
-            }
-        }
     }
 }
