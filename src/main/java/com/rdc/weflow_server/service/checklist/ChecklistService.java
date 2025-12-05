@@ -40,7 +40,7 @@ public class ChecklistService {
     private final ChecklistOptionRepository optionRepository;
     private final StepRepository stepRepository;
     private final ChecklistAnswerRepository answerRepository;
-    private final ActivityLogService  activityLogService;
+    private final ActivityLogService activityLogService;
 
     // 체크리스트 생성
     public Long createChecklist(ChecklistCreateRequest request, User user, String ip) {
@@ -102,19 +102,22 @@ public class ChecklistService {
         // 해당 체크리스트의 모든 답변 조회
         List<ChecklistAnswer> answers = answerRepository.findByChecklist_Id(checklistId);
 
-        // questionId → answer 매핑 (빠른 접근 위한 Map)
-        Map<Long, ChecklistAnswer> answerMap = answers.stream()
-                .collect(Collectors.toMap(a -> a.getQuestion().getId(), a -> a));
+        // questionId → List<ChecklistAnswer> 매핑
+        Map<Long, List<ChecklistAnswer>> answerMap = answers.stream()
+                .collect(Collectors.groupingBy(a -> a.getQuestion().getId()));
 
+        // questions + MULTI 대응 answer 묶어서 DTO 생성
         List<QuestionResponse> questionDtos =
                 checklist.getQuestions().stream()
                         .map(q -> {
-                            ChecklistAnswer answer = answerMap.get(q.getId());
-                            return QuestionResponse.from(q, answer);
+                            List<ChecklistAnswer> answerList = answerMap.getOrDefault(q.getId(), List.of());
+                            return QuestionResponse.from(q, answerList);
                         })
                         .toList();
+
         return ChecklistDetailResponse.from(checklist, questionDtos);
     }
+
 
     // 체크리스트 수정
     public Long updateChecklist(Long checklistId, ChecklistUpdateRequest request, User user, String ip) {
@@ -192,48 +195,48 @@ public class ChecklistService {
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
 
-        // 이미 잠겨 있으면 제출 불가
         if (checklist.getIsLocked()) {
             throw new BusinessException(ErrorCode.CHECKLIST_LOCKED);
         }
 
-        for (ChecklistAnswerRequest.AnswerItem item : request.getAnswers()) {
+        // questionId 기준 그룹화
+        Map<Long, List<ChecklistAnswerRequest.AnswerItem>> grouped =
+                request.getAnswers().stream()
+                        .collect(Collectors.groupingBy(ChecklistAnswerRequest.AnswerItem::getQuestionId));
 
-            // 1) 질문 조회
-            ChecklistQuestion question = questionRepository.findById(item.getQuestionId())
+        for (Map.Entry<Long, List<ChecklistAnswerRequest.AnswerItem>> entry : grouped.entrySet()) {
+
+            Long questionId = entry.getKey();
+            List<ChecklistAnswerRequest.AnswerItem> answerItems = entry.getValue();
+
+            ChecklistQuestion question = questionRepository.findById(questionId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
 
-            ChecklistOption option = null;
+            for (ChecklistAnswerRequest.AnswerItem item : answerItems) {
 
-            // 2) optionId 있을 경우 옵션 조회
-            if (item.getOptionId() != null) {
-                option = optionRepository.findById(item.getOptionId())
-                        .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_FOUND));
+                ChecklistOption option = null;
 
-                // 옵션이 해당 질문 소속인지 검증
-                if (!option.getQuestion().getId().equals(question.getId())) {
-                    throw new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_IN_QUESTION);
+                // 옵션 검증
+                if (item.getOptionId() != null) {
+                    option = optionRepository.findById(item.getOptionId())
+                            .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_FOUND));
+
+                    if (!option.getQuestion().getId().equals(questionId)) {
+                        throw new BusinessException(ErrorCode.CHECKLIST_OPTION_NOT_IN_QUESTION);
+                    }
                 }
-            }
 
-            // 3) 객관식-기타(hasInput=true)인데 텍스트 없으면 오류
-            if (option != null && option.getHasInput() && item.getAnswerText() == null) {
-                throw new BusinessException(ErrorCode.REQUIRED_ANSWER_INPUT);
-            }
+                // 검증
+                if (option != null && option.getHasInput() && item.getAnswerText() == null) {
+                    throw new BusinessException(ErrorCode.REQUIRED_ANSWER_INPUT);
+                }
 
-            // 4) 선택형인데 hasInput=false인데 answerText가 들어오면 오류
-            if (option != null && !option.getHasInput() && item.getAnswerText() != null) {
-                throw new BusinessException(ErrorCode.INVALID_ANSWER_INPUT);
-            }
+                if (option != null && !option.getHasInput() && item.getAnswerText() != null) {
+                    throw new BusinessException(ErrorCode.INVALID_ANSWER_INPUT);
+                }
 
-            // 기존 답변 조회 (중복 생성 방지)
-            ChecklistAnswer answer =
-                    answerRepository.findByChecklist_IdAndQuestion_Id(checklist.getId(), question.getId())
-                            .orElse(null);
-
-            if (answer == null) {
-                // 신규 생성
-                answer = ChecklistAnswer.builder()
+                // Answer 생성
+                ChecklistAnswer newAnswer = ChecklistAnswer.builder()
                         .checklist(checklist)
                         .question(question)
                         .selectedOption(option)
@@ -241,12 +244,9 @@ public class ChecklistService {
                         .answeredBy(user)
                         .answeredAt(LocalDateTime.now())
                         .build();
-            } else {
-                // 기존 답변 업데이트 (set 대신 도메인 메서드 사용)
-                answer.updateAnswer(option, item.getAnswerText(), user);
-            }
 
-            answerRepository.save(answer);
+                answerRepository.save(newAnswer);
+            }
 
             // 로그 생성
             activityLogService.createLog(
@@ -259,11 +259,12 @@ public class ChecklistService {
             );
         }
 
-        // 6) 모든 답변 제출 후 체크리스트 잠금
+        // 제출 완료 후 lock
         checklist.lockChecklist();
 
         return checklist.getId();
     }
+
 
     // 템플릿 복사
     private void copyTemplate(Checklist template, Checklist newChecklist) {
