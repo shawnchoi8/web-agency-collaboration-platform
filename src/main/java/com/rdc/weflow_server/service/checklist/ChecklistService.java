@@ -12,6 +12,8 @@ import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
 import com.rdc.weflow_server.entity.log.ActionType;
 import com.rdc.weflow_server.entity.log.TargetTable;
+import com.rdc.weflow_server.entity.notification.NotificationType;
+import com.rdc.weflow_server.entity.project.ProjectMember;
 import com.rdc.weflow_server.entity.step.Step;
 import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.exception.BusinessException;
@@ -20,8 +22,10 @@ import com.rdc.weflow_server.repository.checklist.ChecklistAnswerRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
+import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
 import com.rdc.weflow_server.repository.step.StepRepository;
 import com.rdc.weflow_server.service.log.ActivityLogService;
+import com.rdc.weflow_server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +45,8 @@ public class ChecklistService {
     private final StepRepository stepRepository;
     private final ChecklistAnswerRepository answerRepository;
     private final ActivityLogService activityLogService;
+    private final NotificationService notificationService;
+    private final ProjectMemberRepository projectMemberRepository;
 
     // 체크리스트 생성
     public Long createChecklist(ChecklistCreateRequest request, User user, String ip) {
@@ -97,6 +103,22 @@ public class ChecklistService {
                 step.getProject().getId(),
                 ip
         );
+
+        // --- 알림 발송: 프로젝트 전체 멤버에게 ---
+        List<ProjectMember> members =
+                projectMemberRepository.findByProjectIdAndDeletedAtIsNull(step.getProject().getId());
+
+        for (ProjectMember pm : members) {
+            notificationService.send(
+                    pm.getUser(),
+                    NotificationType.CHECKLIST_CREATED,
+                    "새 체크리스트 생성",
+                    String.format("[%s] 체크리스트가 생성되었습니다.", checklist.getTitle()),
+                    step.getProject(),
+                    null,
+                    null
+            );
+        }
 
         return checklist.getId();
     }
@@ -282,6 +304,25 @@ public class ChecklistService {
 
         // 제출 완료 후 lock
         checklist.lockChecklist();
+
+        // 알림 발송: 프로젝트 전체 멤버에게 "체크리스트 제출됨"
+        List<ProjectMember> members =
+                projectMemberRepository.findByProjectIdAndDeletedAtIsNull(
+                        checklist.getStep().getProject().getId()
+                );
+
+        for (ProjectMember pm : members) {
+
+            notificationService.send(
+                    pm.getUser(),
+                    NotificationType.CHECKLIST_SUBMITTED,
+                    "체크리스트 제출",
+                    String.format("[%s] 체크리스트가 제출되었습니다.", checklist.getTitle()),
+                    checklist.getStep().getProject(),
+                    null,
+                    null
+            );
+        }
 
         return checklist.getId();
     }
