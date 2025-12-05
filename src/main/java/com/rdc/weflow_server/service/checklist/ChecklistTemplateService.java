@@ -31,7 +31,6 @@ public class ChecklistTemplateService {
                 .isTemplate(true)
                 .isLocked(false)
                 .step(null)
-                .template(null)
                 .build();
 
         checklistRepository.save(template);

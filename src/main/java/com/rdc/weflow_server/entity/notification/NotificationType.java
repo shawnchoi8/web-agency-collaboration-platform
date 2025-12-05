@@ -6,6 +6,7 @@ public enum NotificationType {
     NEW_POST,
     NEW_COMMENT,
     MENTION,
-    SYSTEM_NOTICE
-
+    SYSTEM_NOTICE,
+    CHECKLIST_CREATED,
+    CHECKLIST_SUBMITTED
 }
