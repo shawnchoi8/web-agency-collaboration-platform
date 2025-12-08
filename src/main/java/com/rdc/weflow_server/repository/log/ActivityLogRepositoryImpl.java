@@ -253,4 +253,30 @@ public class ActivityLogRepositoryImpl implements ActivityLogRepositoryCustom {
                 .orderBy(activityLog.createdAt.desc())
                 .fetch();
     }
+    @Override
+    public List<ActivityLogResponseDto> findRecentLogs(int limit) {
+        return queryFactory
+                .select(
+                        Projections.fields(
+                                ActivityLogResponseDto.class,
+                                activityLog.id.as("logId"),
+                                activityLog.actionType.stringValue().as("actionType"),
+                                activityLog.targetTable.stringValue().as("targetTable"),
+                                activityLog.targetId,
+                                activityLog.ipAddress,
+                                activityLog.createdAt,
+                                user.id.as("userId"),
+                                user.name.as("userName"),
+                                project.id.as("projectId"),
+                                project.name.as("projectName")
+                        )
+                )
+                .from(activityLog)
+                .leftJoin(activityLog.user, user)
+                .leftJoin(activityLog.project, project)
+                .orderBy(activityLog.id.desc())
+                .limit(limit)
+                .fetch();
+    }
+
 }

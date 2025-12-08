@@ -47,4 +47,5 @@ public interface ActivityLogRepositoryCustom {
             String startDate,
             String endDate
     );
+    List<ActivityLogResponseDto> findRecentLogs(int limit); // 최근 로그 5개
 }
