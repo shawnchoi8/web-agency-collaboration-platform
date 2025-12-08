@@ -73,7 +73,6 @@ public class ChecklistService {
                     .checklist(checklist)
                     .build();
 
-            checklist.getQuestions().add(question);
             questionRepository.save(question);
 
             // TEXT 타입은 options 없음
@@ -91,8 +90,6 @@ public class ChecklistService {
                 }
             }
         }
-
-        checklistRepository.save(checklist);
 
         // 로그 생성
         activityLogService.createLog(

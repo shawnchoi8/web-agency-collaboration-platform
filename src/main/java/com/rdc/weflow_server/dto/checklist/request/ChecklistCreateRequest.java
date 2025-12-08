@@ -10,6 +10,7 @@ public class ChecklistCreateRequest {
     private Long stepId;
     private String title;
     private String description;
+    private String category;
     private List<QuestionCreateRequest> questions;
 
     @Getter
