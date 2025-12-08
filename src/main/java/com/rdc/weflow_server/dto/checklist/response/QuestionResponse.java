@@ -25,6 +25,7 @@ public class QuestionResponse {
         this.questionId = q.getId();
         this.questionText = q.getQuestionText();
         this.questionType = q.getQuestionType().name();
+        this.orderIndex = q.getOrderIndex();
         this.options = q.getOptions().stream()
                 .map(OptionResponse::from)
                 .toList();
