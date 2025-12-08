@@ -1,5 +1,6 @@
 package com.rdc.weflow_server.repository.step;
 
+import com.rdc.weflow_server.entity.project.ProjectRole;
 import com.rdc.weflow_server.entity.step.StepRequest;
 import com.rdc.weflow_server.entity.step.StepRequestStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -23,4 +24,13 @@ public interface StepRequestRepository extends JpaRepository<StepRequest, Long> 
     List<StepRequest> findByStep_Project_IdOrderByCreatedAtDesc(Long projectId);
 
     boolean existsByStep_IdAndStatus(Long stepId, StepRequestStatus status);
+
+    // 승인 대기 요청 수
+    long countByStep_Project_IdInAndStatus(List<Long> projectIds, StepRequestStatus status);
+
+    // 승인 대기 요청 Top 5
+    List<StepRequest> findTop5ByStep_Project_IdInAndStatusOrderByCreatedAtDesc(
+            List<Long> projectIds,
+            StepRequestStatus status
+    );
 }
