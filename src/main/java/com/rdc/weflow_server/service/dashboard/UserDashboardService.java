@@ -10,6 +10,8 @@ import com.rdc.weflow_server.entity.step.StepRequest;
 import com.rdc.weflow_server.entity.step.StepRequestStatus;
 import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.entity.user.UserRole;
+import com.rdc.weflow_server.exception.BusinessException;
+import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.notification.NotificationRepository;
 import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
 import com.rdc.weflow_server.repository.step.StepRequestRepository;
@@ -33,7 +35,7 @@ public class UserDashboardService {
 
         // 1) 유저 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         UserRole userRole = user.getRole();
 
         // 2) 진행 중인 프로젝트 수
