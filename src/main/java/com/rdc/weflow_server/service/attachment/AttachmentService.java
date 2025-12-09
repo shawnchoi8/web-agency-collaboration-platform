@@ -69,7 +69,7 @@ public class AttachmentService {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        return s3FileService.generateDownloadPresignedUrl(attachment.getFilePath());
+        return s3FileService.generateDownloadPresignedUrl(attachment.getFilePath(), attachment.getFileName());
     }
 
     /**
