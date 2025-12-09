@@ -1,12 +1,12 @@
 package com.rdc.weflow_server.repository.step;
 
-import com.rdc.weflow_server.entity.project.ProjectRole;
 import com.rdc.weflow_server.entity.step.StepRequest;
 import com.rdc.weflow_server.entity.step.StepRequestStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StepRequestRepository extends JpaRepository<StepRequest, Long> {
 
@@ -33,4 +33,11 @@ public interface StepRequestRepository extends JpaRepository<StepRequest, Long> 
             List<Long> projectIds,
             StepRequestStatus status
     );
+    List<StepRequest> findTop3ByStep_Project_IdOrderByCreatedAtDesc(Long projectId);
+    boolean existsByStepIdAndStatus(Long stepId, StepRequestStatus status);
+    Optional<StepRequest> findFirstByStep_Project_IdAndStatusOrderByCreatedAtAsc(
+            Long projectId,
+            StepRequestStatus status
+    );
+
 }
