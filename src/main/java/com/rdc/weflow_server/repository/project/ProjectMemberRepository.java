@@ -60,4 +60,5 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     List<ProjectMember> findAllByProjectIdIncludeDeleted(@Param("projectId") Long projectId);
 
     boolean existsByProjectIdAndUserId(Long projectId, Long userId);
+    long countByUserIdAndProject_StatusNot(Long userId, ProjectStatus status);
 }
