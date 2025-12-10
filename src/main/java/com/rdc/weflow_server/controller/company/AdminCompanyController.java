@@ -14,8 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +29,7 @@ public class AdminCompanyController {
      * POST /api/admin/companies
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<CompanyResponse>> createCompany(
+    public ApiResponse<CompanyResponse> createCompany(
             @Valid @RequestBody CreateCompanyRequest request,
             @AuthenticationPrincipal CustomUserDetails user,
             HttpServletRequest servletRequest) {
@@ -41,8 +39,7 @@ public class AdminCompanyController {
                 user.getId(),
                 servletRequest.getRemoteAddr()
         );
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("회사가 성공적으로 생성되었습니다.", response));
+        return ApiResponse.success("회사가 성공적으로 생성되었습니다.", response);
     }
 
     /**
@@ -50,12 +47,12 @@ public class AdminCompanyController {
      * GET /api/admin/companies
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<CompanyResponse>>> getCompanies(
+    public ApiResponse<Page<CompanyResponse>> getCompanies(
             @ModelAttribute CompanySearchCondition condition,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<CompanyResponse> response = companyService.getCompanies(condition, pageable);
-        return ResponseEntity.ok(ApiResponse.success("회사 목록 조회 성공", response));
+        return ApiResponse.success("회사 목록 조회 성공", response);
     }
 
     /**
@@ -63,9 +60,9 @@ public class AdminCompanyController {
      * GET /api/admin/companies/{companyId}
      */
     @GetMapping("/{companyId}")
-    public ResponseEntity<ApiResponse<CompanyResponse>> getCompany(@PathVariable Long companyId) {
+    public ApiResponse<CompanyResponse> getCompany(@PathVariable Long companyId) {
         CompanyResponse response = companyService.getCompany(companyId);
-        return ResponseEntity.ok(ApiResponse.success("회사 상세 조회 성공", response));
+        return ApiResponse.success("회사 상세 조회 성공", response);
     }
 
     /**
@@ -73,7 +70,7 @@ public class AdminCompanyController {
      * PATCH /api/admin/companies/{companyId}
      */
     @PatchMapping("/{companyId}")
-    public ResponseEntity<ApiResponse<CompanyResponse>> updateCompany(
+    public ApiResponse<CompanyResponse> updateCompany(
             @PathVariable Long companyId,
             @RequestBody @Valid UpdateCompanyRequest request,
             @AuthenticationPrincipal CustomUserDetails user,
@@ -85,7 +82,7 @@ public class AdminCompanyController {
                 user.getId(),
                 servletRequest.getRemoteAddr()
         );
-        return ResponseEntity.ok(ApiResponse.success("회사 정보 수정 성공", response));
+        return ApiResponse.success("회사 정보 수정 성공", response);
     }
 
     /**
@@ -93,7 +90,7 @@ public class AdminCompanyController {
      * DELETE /api/admin/companies/{companyId}
      */
     @DeleteMapping("/{companyId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCompany(
+    public ApiResponse<Void> deleteCompany(
             @PathVariable Long companyId,
             @AuthenticationPrincipal CustomUserDetails user,
             HttpServletRequest servletRequest
@@ -103,6 +100,6 @@ public class AdminCompanyController {
                 user.getId(),
                 servletRequest.getRemoteAddr()
         );
-        return ResponseEntity.ok(ApiResponse.success("회사 삭제 성공", null));
+        return ApiResponse.success("회사 삭제 성공", null);
     }
 }
