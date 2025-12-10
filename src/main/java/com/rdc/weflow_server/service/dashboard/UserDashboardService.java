@@ -43,9 +43,9 @@ public class UserDashboardService {
 
         // 2) 진행 중인 프로젝트 수
         long inProgressProjectCount =
-                projectMemberRepository.countActiveMembershipByUserIdAndProjectStatus(
+                projectMemberRepository.countByUserIdAndProject_StatusNot(
                         userId,
-                        ProjectStatus.IN_PROGRESS
+                        ProjectStatus.CLOSED
                 );
 
         // 3) 최근 등록된 프로젝트 Top 5
