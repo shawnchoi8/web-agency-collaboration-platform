@@ -7,11 +7,13 @@ import com.rdc.weflow_server.dto.checklist.request.TemplateRequest;
 import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistOption;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.entity.user.User;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
+import com.rdc.weflow_server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,11 +27,11 @@ public class ChecklistTemplateService {
     private final ChecklistRepository checklistRepository;
     private final ChecklistQuestionRepository questionRepository;
     private final ChecklistOptionRepository optionRepository;
+    private final UserRepository userRepository;
 
     // 템플릿 생성
     @Transactional
-    public Long createTemplate(ChecklistCreateRequest request) {
-
+    public Long createTemplate(ChecklistCreateRequest request, User user) {
         Checklist template = Checklist.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -37,6 +39,8 @@ public class ChecklistTemplateService {
                 .isTemplate(true)
                 .isLocked(false)
                 .step(null)
+                .createdBy(user)
+                .isDeleted(false)
                 .build();
 
         checklistRepository.save(template);
@@ -119,7 +123,7 @@ public class ChecklistTemplateService {
         Checklist template = checklistRepository.findByIdAndIsTemplateTrue(templateId)
                 .orElseThrow(() -> new RuntimeException("TEMPLATE_NOT_FOUND"));
 
-        checklistRepository.delete(template);
+        template.softDelete();
         return template.getId();
     }
 }
