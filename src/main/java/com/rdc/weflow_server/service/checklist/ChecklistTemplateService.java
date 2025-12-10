@@ -15,6 +15,8 @@ import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
 import com.rdc.weflow_server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,16 +79,14 @@ public class ChecklistTemplateService {
 
     // 템플릿 목록 조회
     @Transactional(readOnly = true)
-    public List<TemplateResponse> getTemplateList() {
+    public Page<TemplateResponse> getTemplateList(Pageable pageable) {
 
-        List<Checklist> templates = checklistRepository.findByIsTemplateTrue();
+        Page<Checklist> templates = checklistRepository.findByIsTemplateTrue(pageable);
 
-        return templates.stream()
-                .map(template -> {
-                    int questionCount = questionRepository.countByChecklist(template);
-                    return TemplateResponse.from(template, questionCount);
-                })
-                .toList();
+        return templates.map(template -> {
+            int questionCount = questionRepository.countByChecklist(template);
+            return TemplateResponse.from(template, questionCount);
+        });
     }
 
     // 템플릿 상세 조회

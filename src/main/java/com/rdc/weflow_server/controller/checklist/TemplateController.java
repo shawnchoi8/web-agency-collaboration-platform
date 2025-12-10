@@ -8,6 +8,8 @@ import com.rdc.weflow_server.dto.checklist.response.TemplateResponse;
 import com.rdc.weflow_server.dto.checklist.request.TemplateRequest;
 import com.rdc.weflow_server.service.checklist.ChecklistTemplateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +33,9 @@ public class TemplateController {
 
     // 템플릿 목록 조회
     @GetMapping
-    public ApiResponse<List<TemplateResponse>> getTemplateList() {
-        return ApiResponse.success(
-                "TEMPLATE_LIST_FETCHED",
-                checklistTemplateService.getTemplateList()
-        );
+    public ApiResponse<Page<TemplateResponse>> getTemplateList(Pageable pageable) {
+        Page<TemplateResponse> data = checklistTemplateService.getTemplateList(pageable);
+        return ApiResponse.success("TEMPLATES_FETCHED", data);
     }
 
     // 템플릿 상세 조회
