@@ -33,6 +33,10 @@ public class Project extends BaseEntity {
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
+    private ProjectPhase phase;
+
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
     private ProjectStatus status;
 
     @Column
@@ -68,6 +72,7 @@ public class Project extends BaseEntity {
     public void updateProject(
             String name,
             String description,
+            ProjectPhase phase,
             ProjectStatus status,
             LocalDateTime startDate,
             LocalDateTime endDateExpected,
@@ -78,6 +83,7 @@ public class Project extends BaseEntity {
     ) {
         if (name != null) this.name = name;
         if (description != null) this.description = description;
+        if (phase != null) this.phase = phase;
         if (status != null) this.status = status;
         if (startDate != null) this.startDate = startDate;
         if (endDateExpected != null) this.expectedEndDate = endDateExpected;
