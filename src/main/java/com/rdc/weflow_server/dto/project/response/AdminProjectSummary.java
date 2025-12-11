@@ -1,6 +1,7 @@
 package com.rdc.weflow_server.dto.project.response;
 
 import com.rdc.weflow_server.entity.project.Project;
+import com.rdc.weflow_server.entity.project.ProjectPhase;
 import com.rdc.weflow_server.entity.project.ProjectStatus;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 public class AdminProjectSummary {
     private Long id;
     private String name;
+    private ProjectPhase phase;
     private ProjectStatus status;
     private Long customerCompanyId;
     private Long createdBy;
@@ -23,6 +25,7 @@ public class AdminProjectSummary {
         return AdminProjectSummary.builder()
                 .id(p.getId())
                 .name(p.getName())
+                .phase(p.getPhase())
                 .status(p.getStatus())
                 .customerCompanyId(p.getCompany().getId())
                 .createdBy(p.getCreatedBy())
