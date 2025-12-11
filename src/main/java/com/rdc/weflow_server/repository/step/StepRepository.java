@@ -20,9 +20,8 @@ public interface StepRepository extends JpaRepository<Step, Long> {
 
     @EntityGraph(attributePaths = {"project", "createdBy"})
     List<Step> findByProject_IdAndPhaseAndDeletedAtIsNullOrderByOrderIndexAsc(Long projectId, ProjectPhase phase);
-
-    @Query("select max(s.orderIndex) from Step s where s.project.id = :projectId and s.phase = :phase and s.deletedAt is null")
-    Integer findMaxOrderIndexByProjectIdAndPhase(Long projectId, ProjectPhase phase);
+    @Query("select max(s.orderIndex) from Step s where s.project.id = :projectId and s.deletedAt is null")
+    Integer findMaxOrderIndexByProjectId(Long projectId);
 
     List<Step> findByProject_IdAndIdInAndDeletedAtIsNull(Long projectId, Collection<Long> stepIds);
 
@@ -30,8 +29,9 @@ public interface StepRepository extends JpaRepository<Step, Long> {
 
     boolean existsByProject_IdAndTitleIgnoreCaseAndIdNotAndDeletedAtIsNull(Long projectId, String title, Long id);
 
-    boolean existsByProject_IdAndPhaseAndOrderIndexAndDeletedAtIsNull(Long projectId, ProjectPhase phase, Integer orderIndex);
+    boolean existsByProject_IdAndOrderIndexAndDeletedAtIsNull(Long projectId, Integer orderIndex);
 
     Optional<Step> findByIdAndDeletedAtIsNull(Long id);
     List<Step> findByProjectIdOrderByOrderIndexAsc(Long projectId);
+    Optional<Step> findTopByProject_IdAndOrderIndexAndDeletedAtIsNullOrderByIdAsc(Long projectId, Integer orderIndex);
 }
