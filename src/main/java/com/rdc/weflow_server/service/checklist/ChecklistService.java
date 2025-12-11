@@ -27,6 +27,9 @@ import com.rdc.weflow_server.repository.step.StepRepository;
 import com.rdc.weflow_server.service.log.ActivityLogService;
 import com.rdc.weflow_server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,14 +126,11 @@ public class ChecklistService {
 
     // 프로젝트별 체크리스트 목록 조회
     @Transactional(readOnly = true)
-    public List<ChecklistResponse> getProjectChecklists(Long projectId) {
+    public Page<ChecklistResponse> getProjectChecklists(Long projectId, Pageable pageable) {
+        Page<Checklist> pageResult =
+                checklistRepository.findByStep_Project_IdOrderByCreatedAtDesc(projectId, pageable);
 
-        List<Checklist> checklists =
-                checklistRepository.findByStep_Project_IdOrderByCreatedAtDesc(projectId);
-
-        return checklists.stream()
-                .map(ChecklistResponse::from)
-                .toList();
+        return pageResult.map(ChecklistResponse::from);
     }
 
     // 체크리스트 상세 조회
