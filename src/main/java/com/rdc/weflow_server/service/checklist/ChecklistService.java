@@ -169,7 +169,10 @@ public class ChecklistService {
             throw new BusinessException(ErrorCode.CHECKLIST_LOCKED);
         }
 
-        if (!checklist.getCreatedBy().getId().equals(user.getId())) {
+        boolean isOwner = checklist.getCreatedBy().getId().equals(user.getId());
+        boolean isSystemAdmin = user.getRole().name().equals("SYSTEM_ADMIN");
+
+        if (!isOwner && !isSystemAdmin) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
@@ -185,11 +188,6 @@ public class ChecklistService {
             Step newStep = stepRepository.findById(request.getStepId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.STEP_NOT_FOUND));
 
-            // 다른 프로젝트 단계로는 이동 불가
-//            if (!newStep.getProject().getId().equals(
-//                    checklist.getStep().getProject().getId())) {
-//                throw new BusinessException(ErrorCode.INVALID_STEP_PROJECT);
-//            }
 
             // 단계 업데이트
             checklist.changeStep(newStep);
@@ -218,7 +216,10 @@ public class ChecklistService {
             throw new BusinessException(ErrorCode.CHECKLIST_LOCKED);
         }
 
-        if (!checklist.getCreatedBy().getId().equals(user.getId())) {
+        boolean isOwner = checklist.getCreatedBy().getId().equals(user.getId());
+        boolean isSystemAdmin = user.getRole().name().equals("SYSTEM_ADMIN");
+
+        if (!isOwner && !isSystemAdmin) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
