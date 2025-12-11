@@ -14,7 +14,9 @@ public class AdminProjectSummary {
     private String name;
     private ProjectStatus status;
     private Long customerCompanyId;
+    private String customerCompanyName;
     private Long createdBy;
+    private String createdByName;
 
     private Boolean deleted;
     private LocalDateTime deletedAt;
@@ -25,7 +27,9 @@ public class AdminProjectSummary {
                 .name(p.getName())
                 .status(p.getStatus())
                 .customerCompanyId(p.getCompany().getId())
+                .customerCompanyName(p.getCompany().getName())
                 .createdBy(p.getCreatedBy())
+                .createdByName(p.getCreatedUser().getName())
                 .deleted(p.getDeletedAt() != null)
                 .deletedAt(p.getDeletedAt())
                 .build();
