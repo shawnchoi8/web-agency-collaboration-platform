@@ -43,7 +43,15 @@ public class PostCreateRequest {
     @AllArgsConstructor
     public static class QuestionRequest {
         private String questionText;
-        private String confirmLabel;
-        private String rejectLabel;
+        private String questionType; // SINGLE, MULTI, TEXT
+        private List<QuestionOptionRequest> options;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class QuestionOptionRequest {
+        private String optionText;
+        private Boolean hasInput;
     }
 }

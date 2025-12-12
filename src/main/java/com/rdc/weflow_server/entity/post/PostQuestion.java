@@ -4,6 +4,9 @@ import com.rdc.weflow_server.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -23,10 +26,12 @@ public class PostQuestion extends BaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String questionText; // 질문 내용
 
-    @Column(length = 50)
-    private String confirmLabel; // 확인 버튼 라벨
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private QuestionType questionType; // 질문 타입 (SINGLE, MULTI, TEXT)
 
-    @Column(length = 50)
-    private String rejectLabel; // 거절 버튼 라벨
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PostQuestionOption> options = new ArrayList<>(); // 질문 옵션들
 
 }
