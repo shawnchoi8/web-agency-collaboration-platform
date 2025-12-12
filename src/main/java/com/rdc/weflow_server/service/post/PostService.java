@@ -6,6 +6,7 @@ import com.rdc.weflow_server.entity.attachment.Attachment;
 import com.rdc.weflow_server.entity.comment.Comment;
 import com.rdc.weflow_server.entity.notification.NotificationType;
 import com.rdc.weflow_server.entity.post.*;
+import com.rdc.weflow_server.entity.project.ProjectMember;
 import com.rdc.weflow_server.entity.project.ProjectPhase;
 import com.rdc.weflow_server.entity.step.Step;
 import com.rdc.weflow_server.entity.user.User;
@@ -16,6 +17,7 @@ import com.rdc.weflow_server.repository.attachment.AttachmentRepository;
 import com.rdc.weflow_server.repository.comment.CommentRepository;
 import com.rdc.weflow_server.repository.post.PostAnswerRepository;
 import com.rdc.weflow_server.repository.post.PostQuestionRepository;
+import com.rdc.weflow_server.repository.post.PostQuestionOptionRepository;
 import com.rdc.weflow_server.repository.post.PostRepository;
 import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
 import com.rdc.weflow_server.repository.step.StepRepository;
@@ -23,6 +25,9 @@ import com.rdc.weflow_server.service.log.ActivityLogService;
 import com.rdc.weflow_server.entity.log.ActionType;
 import com.rdc.weflow_server.entity.log.TargetTable;
 import com.rdc.weflow_server.service.notification.NotificationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,7 +36,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -40,12 +48,14 @@ public class PostService {
     private final PostRepository postRepository;
     private final AttachmentRepository attachmentRepository;
     private final PostQuestionRepository postQuestionRepository;
+    private final PostQuestionOptionRepository postQuestionOptionRepository;
     private final PostAnswerRepository postAnswerRepository;
     private final StepRepository stepRepository;
     private final CommentRepository commentRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final NotificationService notificationService;
     private final ActivityLogService activityLogService;
+    private final ObjectMapper objectMapper;
 
     /**
      * 게시글 상세 조회
@@ -92,23 +102,56 @@ public class PostService {
                     // 질문에 대한 답변 조회
                     PostDetailResponse.AnswerDto answerDto = postAnswerRepository
                             .findByQuestionId(q.getId())
-                            .map(answer -> PostDetailResponse.AnswerDto.builder()
-                                    .response(answer.getAnswerType().name())
-                                    .respondent(PostDetailResponse.RespondentDto.builder()
-                                            .memberId(answer.getUser().getId())
-                                            .name(answer.getUser().getName())
-                                            .build())
-                                    .respondedAt(answer.getCreatedAt())
-                                    .build())
+                            .map(answer -> {
+                                List<Long> selectedOptionIds = null;
+                                String textInput = null;
+
+                                // JSON 파싱
+                                try {
+                                    Map<String, Object> answerData = objectMapper.readValue(
+                                            answer.getContent(),
+                                            new TypeReference<Map<String, Object>>() {}
+                                    );
+
+                                    if (answerData.containsKey("selectedOptionIds")) {
+                                        selectedOptionIds = ((List<?>) answerData.get("selectedOptionIds"))
+                                                .stream()
+                                                .map(id -> ((Number) id).longValue())
+                                                .collect(Collectors.toList());
+                                    }
+                                    if (answerData.containsKey("textInput")) {
+                                        textInput = (String) answerData.get("textInput");
+                                    }
+                                } catch (Exception e) {
+                                    // JSON 파싱 실패 시 null 유지
+                                }
+
+                                return PostDetailResponse.AnswerDto.builder()
+                                        .selectedOptionIds(selectedOptionIds)
+                                        .textInput(textInput)
+                                        .respondent(PostDetailResponse.RespondentDto.builder()
+                                                .memberId(answer.getUser().getId())
+                                                .name(answer.getUser().getName())
+                                                .build())
+                                        .respondedAt(answer.getCreatedAt())
+                                        .build();
+                            })
                             .orElse(null);
+
+                    // 옵션 조회
+                    List<PostDetailResponse.QuestionOptionDto> optionDtos = q.getOptions().stream()
+                            .map(option -> PostDetailResponse.QuestionOptionDto.builder()
+                                    .optionId(option.getId())
+                                    .optionText(option.getOptionText())
+                                    .hasInput(option.getHasInput())
+                                    .build())
+                            .toList();
 
                     return PostDetailResponse.QuestionDto.builder()
                             .questionId(q.getId())
                             .content(q.getQuestionText())
-                            .buttonLabels(PostDetailResponse.ButtonLabelsDto.builder()
-                                    .yes(q.getConfirmLabel())
-                                    .no(q.getRejectLabel())
-                                    .build())
+                            .questionType(q.getQuestionType().name())
+                            .options(optionDtos)
                             .answer(answerDto)
                             .build();
                 })
@@ -210,7 +253,7 @@ public class PostService {
                     ) > 0;
 
                     // 질문 존재 여부
-                    boolean hasQuestions = postQuestionRepository.findByPostId(post.getId()).size() > 0;
+                    boolean hasQuestions = !postQuestionRepository.findByPostId(post.getId()).isEmpty();
 
                     // 댓글 갯수 (children 리스트에서 parentPost가 있는 것만)
                     int commentCount = post.getChildren().size();
@@ -345,13 +388,27 @@ public class PostService {
         // Questions 저장
         if (request.getQuestions() != null) {
             for (PostCreateRequest.QuestionRequest questionReq : request.getQuestions()) {
+                // QuestionType enum으로 변환
+                QuestionType questionType = QuestionType.valueOf(questionReq.getQuestionType());
+
                 PostQuestion question = PostQuestion.builder()
                         .post(post)
                         .questionText(questionReq.getQuestionText())
-                        .confirmLabel(questionReq.getConfirmLabel())
-                        .rejectLabel(questionReq.getRejectLabel())
+                        .questionType(questionType)
                         .build();
-                postQuestionRepository.save(question);
+                question = postQuestionRepository.save(question);
+
+                // 옵션 저장 (주관식이 아닐 경우)
+                if (questionReq.getOptions() != null && !questionReq.getOptions().isEmpty()) {
+                    for (PostCreateRequest.QuestionOptionRequest optionReq : questionReq.getOptions()) {
+                        PostQuestionOption option = PostQuestionOption.builder()
+                                .question(question)
+                                .optionText(optionReq.getOptionText())
+                                .hasInput(optionReq.getHasInput() != null ? optionReq.getHasInput() : false)
+                                .build();
+                        postQuestionOptionRepository.save(option);
+                    }
+                }
             }
         }
 
@@ -368,7 +425,7 @@ public class PostService {
         // 알림 발송 (작성자 본인 제외 프로젝트 멤버 전체에게 알림)
         List<User> projectMembers = projectMemberRepository
                 .findByProjectIdAndDeletedAtIsNull(projectId).stream()
-                .map(pm -> pm.getUser())
+                .map(ProjectMember::getUser)
                 .filter(member -> !member.getId().equals(user.getId())) // 본인 제외
                 .toList();
 
@@ -494,13 +551,28 @@ public class PostService {
 
             // 새 질문 저장
             for (PostUpdateRequest.QuestionRequest questionReq : request.getQuestions()) {
+                // QuestionType enum으로 변환
+                QuestionType questionType = QuestionType.valueOf(questionReq.getQuestionType());
+
                 PostQuestion question = PostQuestion.builder()
                         .post(post)
                         .questionText(questionReq.getQuestionText())
-                        .confirmLabel(questionReq.getConfirmLabel())
-                        .rejectLabel(questionReq.getRejectLabel())
+                        .questionType(questionType)
                         .build();
-                postQuestionRepository.save(question);
+                question = postQuestionRepository.save(question);
+
+                // 옵션 저장 (주관식이 아닐 경우)
+                if (questionReq.getOptions() != null && !questionReq.getOptions().isEmpty()) {
+                    for (PostUpdateRequest.QuestionOptionRequest optionReq : questionReq.getOptions()) {
+                        PostQuestionOption option = PostQuestionOption.builder()
+                                .question(question)
+                                .optionText(optionReq.getOptionText())
+                                .hasInput(optionReq.getHasInput() != null ? optionReq.getHasInput() : false)
+                                .build();
+                        question.getOptions().add(option);
+                    }
+                    postQuestionRepository.save(question);
+                }
             }
 
             // 질문 유무에 따라 상태 업데이트
@@ -620,10 +692,26 @@ public class PostService {
             throw new BusinessException(ErrorCode.ANSWER_ALREADY_EXISTS);
         }
 
-        // 답변 생성
+        // 답변 데이터를 JSON으로 변환
+        Map<String, Object> answerData = new HashMap<>();
+        if (request.getSelectedOptionIds() != null && !request.getSelectedOptionIds().isEmpty()) {
+            answerData.put("selectedOptionIds", request.getSelectedOptionIds());
+        }
+        if (request.getTextInput() != null && !request.getTextInput().trim().isEmpty()) {
+            answerData.put("textInput", request.getTextInput());
+        }
+
+        String answerJson;
+        try {
+            answerJson = objectMapper.writeValueAsString(answerData);
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        // 답변 생성 (answerType은 deprecated되었지만 호환성을 위해 YES로 설정)
         PostAnswer answer = PostAnswer.builder()
-                .answerType(request.getAnswerType())
-                .content(request.getContent())
+                .answerType(AnswerType.YES)
+                .content(answerJson)
                 .question(question)
                 .user(currentUser)
                 .build();
@@ -652,11 +740,11 @@ public class PostService {
             );
         }
 
-        // Response 생성
+        // Response 생성 (content는 JSON 형식)
         return PostAnswerResponse.builder()
                 .answerId(answer.getId())
                 .answerType(answer.getAnswerType())
-                .content(answer.getContent())
+                .content(answerJson)
                 .respondent(PostAnswerResponse.RespondentDto.builder()
                         .memberId(currentUser.getId())
                         .name(currentUser.getName())

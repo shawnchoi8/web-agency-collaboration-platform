@@ -81,7 +81,8 @@ public class PostDetailResponse {
     public static class QuestionDto {
         private Long questionId;
         private String content;
-        private ButtonLabelsDto buttonLabels;
+        private String questionType; // SINGLE, MULTI, TEXT
+        private List<QuestionOptionDto> options;
         private AnswerDto answer;
     }
 
@@ -89,9 +90,10 @@ public class PostDetailResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ButtonLabelsDto {
-        private String yes;
-        private String no;
+    public static class QuestionOptionDto {
+        private Long optionId;
+        private String optionText;
+        private Boolean hasInput;
     }
 
     @Getter
@@ -99,7 +101,8 @@ public class PostDetailResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AnswerDto {
-        private String response;
+        private List<Long> selectedOptionIds;
+        private String textInput;
         private RespondentDto respondent;
         private LocalDateTime respondedAt;
     }
