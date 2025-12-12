@@ -9,6 +9,7 @@ import com.rdc.weflow_server.dto.attachment.AttachmentSimpleResponse;
 import com.rdc.weflow_server.entity.attachment.Attachment;
 import com.rdc.weflow_server.entity.log.ActionType;
 import com.rdc.weflow_server.entity.log.TargetTable;
+import com.rdc.weflow_server.entity.project.Project;
 import com.rdc.weflow_server.entity.step.Step;
 import com.rdc.weflow_server.entity.step.StepRequest;
 import com.rdc.weflow_server.entity.step.StepRequestHistory;
@@ -23,6 +24,7 @@ import com.rdc.weflow_server.entity.notification.NotificationType;
 import com.rdc.weflow_server.service.notification.NotificationService;
 import com.rdc.weflow_server.repository.attachment.AttachmentRepository;
 import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
+import com.rdc.weflow_server.repository.project.ProjectRepository;
 import com.rdc.weflow_server.repository.step.StepRequestHistoryRepository;
 import com.rdc.weflow_server.repository.step.StepRequestAnswerRepository;
 import com.rdc.weflow_server.repository.step.StepRequestRepository;
@@ -31,7 +33,11 @@ import com.rdc.weflow_server.repository.user.UserRepository;
 import com.rdc.weflow_server.service.log.ActivityLogService;
 import com.rdc.weflow_server.service.file.S3FileService;
 import com.rdc.weflow_server.service.log.AuditContext;
+import com.rdc.weflow_server.config.security.CustomUserDetails;
+import com.rdc.weflow_server.service.permission.StepRequestPermissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,27 +64,15 @@ public class StepRequestService {
     private final NotificationService notificationService;
     private final StepRepository stepRepository;
     private final StepRequestAnswerRepository stepRequestAnswerRepository;
+    private final ProjectRepository projectRepository;
+    private final StepRequestPermissionService stepRequestPermissionService;
 
     public StepRequestResponse createRequest(Long stepId, AuditContext ctx, StepRequestCreateRequest request) {
         Step step = stepService.getStepOrThrow(stepId);
         User user = userRepository.findById(ctx.userId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 시스템 관리자는 예외적으로 허용
-        if (user.getRole() != UserRole.SYSTEM_ADMIN) {
-            // 개발사 소속인지 확인
-            if (user.getRole() != UserRole.AGENCY) {
-                throw new BusinessException(ErrorCode.FORBIDDEN);
-            }
-
-            // 프로젝트 활성 멤버인지 확인 (deletedAt 검사 포함)
-            boolean isActiveMember = projectMemberRepository.findByProjectIdAndUserId(step.getProject().getId(), ctx.userId())
-                    .filter(pm -> pm.getDeletedAt() == null)
-                    .isPresent();
-            if (!isActiveMember) {
-                throw new BusinessException(ErrorCode.FORBIDDEN);
-            }
-        }
+        stepRequestPermissionService.assertCanCreateRequest(user, step.getProject().getId());
 
         // 승인 완료된 단계에는 신규 요청 생성 불가
         if (step.getStatus() == StepStatus.APPROVED) {
@@ -136,17 +130,7 @@ public class StepRequestService {
             throw new BusinessException(ErrorCode.STEP_NOT_FOUND);
         }
 
-        if (!stepRequest.getStatus().isEditable()) {
-            throw new BusinessException(ErrorCode.STEP_REQUEST_ALREADY_DECIDED);
-        }
-
-        boolean isSystemAdmin = user.getRole() == UserRole.SYSTEM_ADMIN;
-        boolean isRequester = stepRequest.getRequestedBy() != null
-                && stepRequest.getRequestedBy().getId().equals(ctx.userId());
-
-        if (!isSystemAdmin && !isRequester) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
+        stepRequestPermissionService.assertCanUpdateRequest(user, stepRequest);
 
         // 제목/설명 업데이트
         if (request.getTitle() != null) {
@@ -195,9 +179,11 @@ public class StepRequestService {
     }
 
     @Transactional(readOnly = true)
-    public StepRequestListResponse getRequestsByStep(Long stepId, int page, int size) {
+    public StepRequestListResponse getRequestsByStep(Long stepId, int page, int size, CustomUserDetails user) {
+        User currentUser = getUserOrThrow(user);
         // 삭제된 Step이면 조회도 404 처리
-        stepService.getStepOrThrow(stepId);
+        Step step = stepService.getStepOrThrow(stepId);
+        stepRequestPermissionService.assertCanViewRequests(currentUser, step.getProject().getId());
         var pageable = org.springframework.data.domain.PageRequest.of(page, size);
         var pageResult = stepRequestRepository.findByStep_IdOrderByCreatedAtDesc(stepId, pageable);
         List<StepRequestSummaryResponse> summaries = toSummaries(pageResult.getContent());
@@ -211,8 +197,14 @@ public class StepRequestService {
     }
 
     @Transactional(readOnly = true)
-    public StepRequestListResponse getRequestsByProject(Long projectId, int page, int size) {
-        // 정책: 삭제된 Step에 속한 Request도 프로젝트 히스토리로 조회 가능
+    public StepRequestListResponse getRequestsByProject(Long projectId, int page, int size, CustomUserDetails user) {
+        User currentUser = getUserOrThrow(user);
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+        if (project.getDeletedAt() != null) {
+            throw new BusinessException(ErrorCode.PROJECT_NOT_FOUND);
+        }
+        stepRequestPermissionService.assertCanViewRequests(currentUser, projectId);
         var pageable = org.springframework.data.domain.PageRequest.of(page, size);
         var pageResult = stepRequestRepository.findByStep_Project_IdOrderByCreatedAtDesc(projectId, pageable);
         List<StepRequestSummaryResponse> summaries = toSummaries(pageResult.getContent());
@@ -227,23 +219,11 @@ public class StepRequestService {
 
     @Transactional(readOnly = true)
     public StepRequestListResponse getRequestsByMyProjects(Long userId, int page, int size, StepRequestStatus status) {
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        List<Long> projectIds = projectMemberRepository.findActiveProjectIdsByUserId(userId);
-        if (projectIds.isEmpty()) {
-            return StepRequestListResponse.builder()
-                    .totalCount(0L)
-                    .page(page)
-                    .size(size)
-                    .stepRequestSummaryResponses(List.of())
-                    .build();
-        }
-
         var pageable = org.springframework.data.domain.PageRequest.of(page, size);
-        var pageResult = status != null
-                ? stepRequestRepository.findByStep_Project_IdInAndStatusOrderByCreatedAtDesc(projectIds, status, pageable)
-                : stepRequestRepository.findByStep_Project_IdInOrderByCreatedAtDesc(projectIds, pageable);
+        var pageResult = getStepRequestPageForUser(user, status, pageable);
 
         List<StepRequestSummaryResponse> summaries = toSummaries(pageResult.getContent());
 
@@ -267,18 +247,7 @@ public class StepRequestService {
             throw new BusinessException(ErrorCode.STEP_NOT_FOUND);
         }
 
-        boolean isSystemAdmin = user.getRole() == UserRole.SYSTEM_ADMIN;
-        boolean isRequester = stepRequest.getRequestedBy() != null
-                && stepRequest.getRequestedBy().getId().equals(ctx.userId());
-
-        // 요청자 본인만 취소 가능 (시스템관리자는 예외 허용)
-        if (!isSystemAdmin && !isRequester) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-
-        if (stepRequest.getStatus() != StepRequestStatus.REQUESTED) {
-            throw new BusinessException(ErrorCode.STEP_REQUEST_CANNOT_CANCEL);
-        }
+        stepRequestPermissionService.assertCanCancelRequest(user, stepRequest);
 
         StepRequestStatus beforeStatus = stepRequest.getStatus();
         stepRequest.updateStatus(StepRequestStatus.CANCELED);
@@ -404,6 +373,7 @@ public class StepRequestService {
                         ? stepRequest.getStep().getProject().getId() : null)
                 .projectName(stepRequest.getStep() != null && stepRequest.getStep().getProject() != null
                         ? stepRequest.getStep().getProject().getName() : null)
+                .phase(stepRequest.getStep() != null ? stepRequest.getStep().getPhase() : null)
                 .stepId(stepRequest.getStep() != null ? stepRequest.getStep().getId() : null)
                 .stepTitle(stepRequest.getStep() != null ? stepRequest.getStep().getTitle() : null)
                 .requestedBy(stepRequest.getRequestedBy() != null ? stepRequest.getRequestedBy().getId() : null)
@@ -439,6 +409,31 @@ public class StepRequestService {
         return requests.stream()
                 .map(req -> toSummary(req, req != null && requestIdsWithAttachments.contains(req.getId())))
                 .collect(Collectors.toList());
+    }
+
+    private Page<StepRequest> getStepRequestPageForUser(User user, StepRequestStatus status, Pageable pageable) {
+        if (user.getRole() == UserRole.SYSTEM_ADMIN) {
+            return status != null
+                    ? stepRequestRepository.findByStatusOrderByCreatedAtDesc(status, pageable)
+                    : stepRequestRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+
+        List<Long> projectIds = projectMemberRepository.findActiveProjectIdsByUserId(user.getId());
+        if (projectIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        return status != null
+                ? stepRequestRepository.findByStep_Project_IdInAndStatusOrderByCreatedAtDesc(projectIds, status, pageable)
+                : stepRequestRepository.findByStep_Project_IdInOrderByCreatedAtDesc(projectIds, pageable);
+    }
+
+    private User getUserOrThrow(CustomUserDetails user) {
+        if (user == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+        return userRepository.findById(user.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     private AttachmentSimpleResponse toAttachmentSimpleResponse(Attachment attachment) {

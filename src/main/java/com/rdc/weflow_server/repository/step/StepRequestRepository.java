@@ -30,6 +30,12 @@ public interface StepRequestRepository extends JpaRepository<StepRequest, Long> 
     @EntityGraph(attributePaths = {"step", "step.project", "requestedBy"})
     Page<StepRequest> findByStep_Project_IdInAndStatusOrderByCreatedAtDesc(List<Long> projectIds, StepRequestStatus status, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"step", "step.project", "requestedBy"})
+    Page<StepRequest> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"step", "step.project", "requestedBy"})
+    Page<StepRequest> findByStatusOrderByCreatedAtDesc(StepRequestStatus status, Pageable pageable);
+
     boolean existsByStep_Id(Long stepId);
 
     List<StepRequest> findByStep_IdOrderByCreatedAtDesc(Long stepId);
@@ -54,5 +60,24 @@ public interface StepRequestRepository extends JpaRepository<StepRequest, Long> 
             StepRequestStatus status
     );
     boolean existsByStep_IdAndStatusIn(Long stepId, List<StepRequestStatus> statuses);
+
+    // 대시보드용: 상태 리스트 기반 전체/프로젝트/요청자 조회
+    long countByStatusIn(List<StepRequestStatus> statuses);
+
+    List<StepRequest> findTop5ByStatusInOrderByCreatedAtDesc(List<StepRequestStatus> statuses);
+
+    long countByStep_Project_IdInAndStatusIn(List<Long> projectIds, List<StepRequestStatus> statuses);
+
+    List<StepRequest> findTop5ByStep_Project_IdInAndStatusInOrderByCreatedAtDesc(
+            List<Long> projectIds,
+            List<StepRequestStatus> statuses
+    );
+
+    long countByRequestedBy_IdAndStatusIn(Long requestedById, List<StepRequestStatus> statuses);
+
+    List<StepRequest> findTop5ByRequestedBy_IdAndStatusInOrderByCreatedAtDesc(
+            Long requestedById,
+            List<StepRequestStatus> statuses
+    );
 
 }
