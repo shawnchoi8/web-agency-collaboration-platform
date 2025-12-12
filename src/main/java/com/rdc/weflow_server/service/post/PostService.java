@@ -48,7 +48,6 @@ public class PostService {
     private final PostRepository postRepository;
     private final AttachmentRepository attachmentRepository;
     private final PostQuestionRepository postQuestionRepository;
-    private final PostQuestionOptionRepository postQuestionOptionRepository;
     private final PostAnswerRepository postAnswerRepository;
     private final StepRepository stepRepository;
     private final CommentRepository commentRepository;
@@ -388,17 +387,21 @@ public class PostService {
         // Questions 저장
         if (request.getQuestions() != null) {
             for (PostCreateRequest.QuestionRequest questionReq : request.getQuestions()) {
-                // QuestionType enum으로 변환
-                QuestionType questionType = QuestionType.valueOf(questionReq.getQuestionType());
+                // QuestionType enum으로 변환 (유효성 검사)
+                QuestionType questionType;
+                try {
+                    questionType = QuestionType.valueOf(questionReq.getQuestionType().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new BusinessException(ErrorCode.INVALID_QUESTION_TYPE);
+                }
 
                 PostQuestion question = PostQuestion.builder()
                         .post(post)
                         .questionText(questionReq.getQuestionText())
                         .questionType(questionType)
                         .build();
-                question = postQuestionRepository.save(question);
 
-                // 옵션 저장 (주관식이 아닐 경우)
+                // 옵션 추가 (cascade로 자동 저장)
                 if (questionReq.getOptions() != null && !questionReq.getOptions().isEmpty()) {
                     for (PostCreateRequest.QuestionOptionRequest optionReq : questionReq.getOptions()) {
                         PostQuestionOption option = PostQuestionOption.builder()
@@ -406,9 +409,10 @@ public class PostService {
                                 .optionText(optionReq.getOptionText())
                                 .hasInput(optionReq.getHasInput() != null ? optionReq.getHasInput() : false)
                                 .build();
-                        postQuestionOptionRepository.save(option);
+                        question.getOptions().add(option);
                     }
                 }
+                postQuestionRepository.save(question);
             }
         }
 
@@ -551,17 +555,21 @@ public class PostService {
 
             // 새 질문 저장
             for (PostUpdateRequest.QuestionRequest questionReq : request.getQuestions()) {
-                // QuestionType enum으로 변환
-                QuestionType questionType = QuestionType.valueOf(questionReq.getQuestionType());
+                // QuestionType enum으로 변환 (유효성 검사)
+                QuestionType questionType;
+                try {
+                    questionType = QuestionType.valueOf(questionReq.getQuestionType().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new BusinessException(ErrorCode.INVALID_QUESTION_TYPE);
+                }
 
                 PostQuestion question = PostQuestion.builder()
                         .post(post)
                         .questionText(questionReq.getQuestionText())
                         .questionType(questionType)
                         .build();
-                question = postQuestionRepository.save(question);
 
-                // 옵션 저장 (주관식이 아닐 경우)
+                // 옵션 추가 (cascade로 자동 저장)
                 if (questionReq.getOptions() != null && !questionReq.getOptions().isEmpty()) {
                     for (PostUpdateRequest.QuestionOptionRequest optionReq : questionReq.getOptions()) {
                         PostQuestionOption option = PostQuestionOption.builder()
@@ -571,8 +579,8 @@ public class PostService {
                                 .build();
                         question.getOptions().add(option);
                     }
-                    postQuestionRepository.save(question);
                 }
+                postQuestionRepository.save(question);
             }
 
             // 질문 유무에 따라 상태 업데이트

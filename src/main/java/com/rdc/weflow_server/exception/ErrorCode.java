@@ -25,6 +25,7 @@ public enum ErrorCode {
 
     // Post Question
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "QUESTION_001", "질문을 찾을 수 없습니다."),
+    INVALID_QUESTION_TYPE(HttpStatus.BAD_REQUEST, "QUESTION_002", "유효하지 않은 질문 타입입니다. SINGLE, MULTI, TEXT 중 하나를 입력하세요."),
 
     // Post Answer
     ANSWER_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "ANSWER_001", "이미 답변이 등록되었습니다."),
