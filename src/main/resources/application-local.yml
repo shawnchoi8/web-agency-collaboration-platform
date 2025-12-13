@@ -1,18 +1,42 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${localdb.host}:${localdb.port}/${localdb.dbname}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: ${localdb.username}
-    password: ${localdb.password}
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:weflow;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create  # ← H2는 메모리라 create로
     properties:
       hibernate:
         format_sql: true
         show_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.H2Dialect  # ← H2 Dialect
+
+  jwt:
+    secret: ${JWT_SECRET:local-dev-secret-key-min-256-bits-xxxxxxxxxxxxxxx}
+    expiration: ${JWT_EXPIRATION:86400000}
+
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_S3_ACCESS_KEY:AKIAIOSFODNN7EXAMPLE}
+        secret-key: ${AWS_S3_SECRET_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
+      s3:
+        bucket: ${AWS_S3_BUCKET:weflow-local}
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
+
+server:
+  port: 8080
 
 logging:
   level:
