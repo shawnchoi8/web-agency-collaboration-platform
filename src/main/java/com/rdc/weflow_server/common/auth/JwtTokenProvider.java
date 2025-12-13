@@ -18,8 +18,8 @@ public class JwtTokenProvider {
     private final long accessTokenValidityTime;
 
     // 1. application-secret.yml에서 값 가져오기
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey,
-                            @Value("${jwt.expiration}") long accessTokenValidityTime) {
+    public JwtTokenProvider(@Value("${jwt.secret:local-dev-secret-key-minimum-256-bits-required-xxxxxxxxxxxxxxxxxxxxxxxx}") String secretKey,
+                            @Value("${jwt.expiration:86400000}") long accessTokenValidityTime) {
         // 비밀키를 바이트 배열로 변환하여 키 생성 (가장 안전하고 확실한 방법)
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.accessTokenValidityTime = accessTokenValidityTime;

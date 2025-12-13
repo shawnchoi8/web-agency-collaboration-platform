@@ -25,7 +25,7 @@ public class S3FileService {
     private final S3Presigner presigner;
     private final S3Client s3Client;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.s3.bucket:weflow-local}")
     private String bucket;
 
     public PresignedUrlResponseDto generatePresignedUrl(String key, String contentType) {
