@@ -1,7 +1,7 @@
 spring:
-  config:
-    import: optional:application-secret.yml
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+  profiles:
+    active: local # 로컬 기본값 local. (prod로 변경 가능)

@@ -1,0 +1,63 @@
+name: CICD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository에 올라간 파일들 Github Actions로 불러오기
+        uses: actions/checkout@v4
+
+      - name: Install JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: test & build
+        run: ./gradlew clean build
+
+      - name: AWS credentials setting (AWS Resource인 ECR에 접근할 수 있도록)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: build docker image
+        run: docker build -t weflow-server .
+
+      - name: Docker image에 Tag 붙이기
+        run: docker tag weflow-server ${{ steps.login-ecr.outputs.registry }}/weflow-server:latest
+
+      - name: ECR에 Docker image Push
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/weflow-server:latest
+
+      - name: Deploy EC2 (SSH로 EC2 접속 후 배포)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            docker stop weflow-server || true
+            docker rm weflow-server || true
+            docker image prune -f
+            docker pull ${{ steps.login-ecr.outputs.registry }}/weflow-server:latest
+            docker run -d \
+              --name weflow-server \
+              --env-file /home/ubuntu/weflow.env \
+              -p 8080:8080 \
+              --restart unless-stopped \
+              ${{ steps.login-ecr.outputs.registry }}/weflow-server:latest
