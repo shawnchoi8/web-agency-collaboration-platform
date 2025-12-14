@@ -42,7 +42,7 @@ public class SecurityConfig {
                 // 경로별 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         // 1. 누구나 접근 가능 (로그인, 에러)
-                        .requestMatchers("/api/auth/**", "/error").permitAll()
+                        .requestMatchers("/api/auth/**", "/error", "/test").permitAll()
 
                         // 2. 관리자만 접근 가능
                         .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
