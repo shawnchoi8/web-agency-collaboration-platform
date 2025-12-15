@@ -6,12 +6,14 @@ import com.rdc.weflow_server.dto.auth.response.LoginResponse;
 import com.rdc.weflow_server.service.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"https://www.weflow.kr", "https://weflow.kr"}, allowedHeaders = "*")
 public class AuthController {
 
     private final AuthService authService;

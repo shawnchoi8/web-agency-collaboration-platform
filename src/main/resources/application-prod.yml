@@ -35,4 +35,7 @@ server:
 
 logging:
   level:
+    root: INFO
+    com.rdc.weflow_server: DEBUG
     org.hibernate.SQL: debug
+    org.springframework.web: DEBUG
