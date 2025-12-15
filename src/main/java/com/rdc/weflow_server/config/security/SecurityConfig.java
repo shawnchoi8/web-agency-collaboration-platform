@@ -96,11 +96,11 @@ public class SecurityConfig {
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
         ));
 
-        // Authorization 헤더 허용 (JWT 핵심)
-        config.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type"
-        ));
+        // 모든 헤더 허용
+        config.setAllowedHeaders(List.of("*"));
+
+        // 응답 헤더 노출
+        config.setExposedHeaders(List.of("Authorization"));
 
         config.setAllowCredentials(false);
 
