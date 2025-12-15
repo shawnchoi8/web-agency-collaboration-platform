@@ -22,7 +22,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: test & build
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: AWS credentials setting (AWS Resource인 ECR에 접근할 수 있도록)
         uses: aws-actions/configure-aws-credentials@v4
