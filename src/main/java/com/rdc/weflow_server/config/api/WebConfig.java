@@ -14,11 +14,13 @@ public class WebConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(
-                                "http://localhost:3000"   // React local
+                                "http://localhost:3000",      // React local
+                                "https://www.weflow.kr",      // Production frontend
+                                "https://weflow.kr"           // Production backend
                         )
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowCredentials(false);
             }
         };
     }
