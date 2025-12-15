@@ -1,42 +1,34 @@
 spring:
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:weflow;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: create  # ← H2는 메모리라 create로
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
         show_sql: true
-        dialect: org.hibernate.dialect.H2Dialect  # ← H2 Dialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
-  jwt:
-    secret: ${JWT_SECRET:local-dev-secret-key-min-256-bits-xxxxxxxxxxxxxxx}
-    expiration: ${JWT_EXPIRATION:86400000}
+jwt:
+  secret: ${JWT_SECRET:local-dev-secret-key-min-256-bits-xxxxxxxxxxxxxxx}
+  expiration: ${JWT_EXPIRATION:86400000}
 
-  cloud:
-    aws:
-      credentials:
-        access-key: ${AWS_S3_ACCESS_KEY:AKIAIOSFODNN7EXAMPLE}
-        secret-key: ${AWS_S3_SECRET_KEY:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}
-      s3:
-        bucket: ${AWS_S3_BUCKET:weflow-local}
-      region:
-        static: ap-northeast-2
-      stack:
-        auto: false
-
-server:
-  port: 8080
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_S3_ACCESS_KEY}
+      secret-key: ${AWS_S3_SECRET_KEY}
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    region:
+      static: ${AWS_S3_REGION:ap-northeast-2}
+    stack:
+      auto: false
 
 logging:
   level:
