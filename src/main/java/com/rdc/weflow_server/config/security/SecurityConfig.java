@@ -79,8 +79,9 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 프론트 도메인만 허용
-        config.setAllowedOrigins(List.of(
-                "https://www.weflow.kr"
+        config.setAllowedOriginPatterns(List.of(
+                "https://*.weflow.kr",
+                "https://weflow.kr"
         ));
 
         // 허용 HTTP 메서드
