@@ -11,4 +11,5 @@ public class UpdateUserRequest {
 
     private String name;
     private String phoneNumber;
+    private Boolean isEmailNotificationEnabled;
 }

@@ -388,7 +388,11 @@ public class UserService {
         }
 
         // 3. 정보 수정
-        user.updateMyInfo(request.getName(), request.getPhoneNumber());
+        user.updateMyInfo(
+                request.getName(),
+                request.getPhoneNumber(),
+                request.getIsEmailNotificationEnabled()
+        );
 
         // 4. 로그 기록 (본인 수정)
         activityLogService.createLog(

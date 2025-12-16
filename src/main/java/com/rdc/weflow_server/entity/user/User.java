@@ -48,6 +48,10 @@ public class User extends BaseEntity {
     @Builder.Default
     private Boolean isTemporaryPassword = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isEmailNotificationEnabled = false;
+
     @Column
     private LocalDateTime lastLoginAt;
 
@@ -63,10 +67,11 @@ public class User extends BaseEntity {
         this.lastLoginAt = LocalDateTime.now();
     }
 
-    // 내 정보 수정 (이름, 전화번호)
-    public void updateMyInfo(String name, String phoneNumber) {
+    // 내 정보 수정 (이름, 전화번호, 이메일 알림 설정)
+    public void updateMyInfo(String name, String phoneNumber, Boolean isEmailNotificationEnabled) {
         if (name != null) this.name = name;
         if (phoneNumber != null) this.phoneNumber = phoneNumber;
+        if (isEmailNotificationEnabled != null) this.isEmailNotificationEnabled = isEmailNotificationEnabled;
     }
 
     // 비밀번호 변경 (암호화된 비밀번호로 변경)

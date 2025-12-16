@@ -147,8 +147,10 @@ public class NotificationService {
 
         notificationRepository.save(notification);
 
-        // [2] 중요 알림이고 이메일이 있다면 메일 발송 (추가된 로직)
-        if (priority == NotificationPriority.IMPORTANT && receiver.getEmail() != null) {
+        // [2] 중요 알림이고, 이메일이 있고, 이메일 알림이 활성화되었다면 메일 발송
+        if (priority == NotificationPriority.IMPORTANT
+                && receiver.getEmail() != null
+                && Boolean.TRUE.equals(receiver.getIsEmailNotificationEnabled())) {
             // 이메일 본문 생성
             String emailBody = createEmailBody(message, project, receiver.getName());
 
