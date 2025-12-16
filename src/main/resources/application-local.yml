@@ -39,8 +39,6 @@ cloud:
       bucket: ${AWS_S3_BUCKET}
     region:
       static: ${AWS_S3_REGION:ap-northeast-2}
-    stack:
-      auto: false
 
 logging:
   level:
