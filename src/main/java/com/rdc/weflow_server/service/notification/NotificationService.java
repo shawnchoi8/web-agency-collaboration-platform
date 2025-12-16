@@ -28,12 +28,12 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final EmailService emailService; // [1] EmailService 주입 추가
 
     // ========== 조회 기능 ==========
 
     /**
      * 1. 알림 목록 조회
-     * GET /api/notifications
      */
     public Page<NotificationResponse> getNotifications(
             Long userId,
@@ -50,7 +50,6 @@ public class NotificationService {
 
     /**
      * 2. 읽지 않은 알림 개수 조회
-     * GET /api/notifications/unread-count
      */
     public long getUnreadCount(Long userId) {
         return notificationRepository.countByUserIdAndIsReadFalseAndDeletedAtIsNull(userId);
@@ -58,7 +57,6 @@ public class NotificationService {
 
     /**
      * 3. 알림 상세 조회
-     * GET /api/notifications/{notificationId}
      */
     public NotificationResponse getNotification(Long userId, Long notificationId) {
         Notification notification = validateOwner(userId, notificationId);
@@ -69,7 +67,6 @@ public class NotificationService {
 
     /**
      * 4. 알림 읽음 처리
-     * PATCH /api/notifications/{notificationId}/read
      */
     @Transactional
     public void markAsRead(Long userId, Long notificationId) {
@@ -79,7 +76,6 @@ public class NotificationService {
 
     /**
      * 5. 알림 읽지 않음 처리
-     * PATCH /api/notifications/{notificationId}/unread
      */
     @Transactional
     public void markAsUnread(Long userId, Long notificationId) {
@@ -89,7 +85,6 @@ public class NotificationService {
 
     /**
      * 6. 알림 전체 읽음 처리
-     * PATCH /api/notifications/read-all
      */
     @Transactional
     public void markAllAsRead(Long userId) {
@@ -101,7 +96,6 @@ public class NotificationService {
 
     /**
      * 7. 알림 삭제 (단건)
-     * DELETE /api/notifications/{notificationId}
      */
     @Transactional
     public void deleteNotification(Long userId, Long notificationId) {
@@ -111,7 +105,6 @@ public class NotificationService {
 
     /**
      * 8. 알림 전체 삭제
-     * DELETE /api/notifications/delete-all
      */
     @Transactional
     public void deleteAllNotifications(Long userId) {
@@ -125,9 +118,6 @@ public class NotificationService {
 
     /**
      * 9. 알림 생성 및 발송
-     * - 다른 서비스(PostService, StepRequestService 등)에서 호출
-     * - 알림 타입에 따라 우선순위 자동 결정
-     * - Entity를 직접 받아 DB 재조회 없이 처리 (성능 최적화 및 순환 참조 방지)
      */
     @Transactional
     public void send(
@@ -142,24 +132,52 @@ public class NotificationService {
         // 1. 우선순위 자동 결정
         NotificationPriority priority = determinePriority(type);
 
-        // 2. 알림 엔티티 생성
+        // 2. 알림 엔티티 생성 및 저장
         Notification notification = Notification.builder()
                 .user(receiver)
                 .type(type)
                 .priority(priority)
                 .title(title)
                 .message(message)
-                .project(project)       // null 가능
-                .post(post)             // null 가능
-                .stepRequest(stepRequest) // null 가능
+                .project(project)
+                .post(post)
+                .stepRequest(stepRequest)
                 .isRead(false)
                 .build();
 
-        // 3. 저장
         notificationRepository.save(notification);
+
+        // [2] 중요 알림이고, 이메일이 있고, 이메일 알림이 활성화되었다면 메일 발송
+        if (priority == NotificationPriority.IMPORTANT
+                && receiver.getEmail() != null
+                && Boolean.TRUE.equals(receiver.getIsEmailNotificationEnabled())) {
+            // 이메일 본문 생성
+            String emailBody = createEmailBody(message, project, receiver.getName());
+
+            // 이메일 전송 (비동기)
+            emailService.sendEmail(receiver.getEmail(), title, emailBody);
+        }
     }
 
     // ========== 내부 메서드 ==========
+
+    /**
+     * 이메일 본문 생성
+     */
+    private String createEmailBody(String message, Project project, String userName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("안녕하세요, ").append(userName).append("님.\n\n");
+        sb.append(message).append("\n\n");
+
+        if (project != null) {
+            sb.append("관련 프로젝트: ").append(project.getName()).append("\n");
+        }
+
+        sb.append("\nWeFlow 시스템에 접속하여 확인해주세요.");
+        sb.append("감사합니다.\n");
+        sb.append("WeFlow 팀");
+        return sb.toString();
+    }
 
     /**
      * 알림 소유자 검증

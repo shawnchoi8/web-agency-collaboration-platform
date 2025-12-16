@@ -53,6 +53,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 .role(UserRole.SYSTEM_ADMIN)
                 .status(UserStatus.ACTIVE)
                 .isTemporaryPassword(false)
+                .isEmailNotificationEnabled(false)
                 .company(company)
                 .build();
         userRepository.save(admin);

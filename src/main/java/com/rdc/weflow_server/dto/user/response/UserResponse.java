@@ -20,6 +20,7 @@ public class UserResponse {
     private UserRole role;
     private UserStatus status;
     private Boolean isTemporaryPassword;
+    private Boolean isEmailNotificationEnabled;
     private LocalDateTime lastLoginAt;
 
     // 회사 정보 (Flattening)
@@ -41,6 +42,7 @@ public class UserResponse {
                 .role(user.getRole())
                 .status(user.getStatus())
                 .isTemporaryPassword(user.getIsTemporaryPassword())
+                .isEmailNotificationEnabled(user.getIsEmailNotificationEnabled())
                 .lastLoginAt(user.getLastLoginAt())
                 .companyId(user.getCompany() != null ? user.getCompany().getId() : null)
                 .companyName(user.getCompany() != null ? user.getCompany().getName() : null)
