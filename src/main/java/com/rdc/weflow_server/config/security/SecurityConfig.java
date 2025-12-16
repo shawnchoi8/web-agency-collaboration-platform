@@ -87,6 +87,7 @@ public class SecurityConfig {
 
         // 프론트 도메인만 허용
         config.setAllowedOrigins(List.of(
+                "http://localhost:3000",
                 "https://www.weflow.kr",
                 "https://weflow.kr"
         ));
