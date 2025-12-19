@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ChecklistRepository extends JpaRepository<Checklist, Long> {
+public interface ChecklistRepository extends JpaRepository<Checklist, Long>, ChecklistRepositoryCustom {
     Page<Checklist> findByIsTemplateTrue(Pageable pageable);
     // 템플릿 목록
     Optional<Checklist> findByIdAndIsTemplateTrue(Long templateId); // 템플릿 조회
