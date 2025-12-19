@@ -33,8 +33,17 @@ public class TemplateController {
 
     // 템플릿 목록 조회
     @GetMapping
-    public ApiResponse<Page<TemplateResponse>> getTemplateList(Pageable pageable) {
-        Page<TemplateResponse> data = checklistTemplateService.getTemplateList(pageable);
+    public ApiResponse<Page<TemplateResponse>> getTemplateList(
+            Pageable pageable,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "category", required = false) String category
+    ) {
+        Page<TemplateResponse> data = checklistTemplateService.getTemplateList(
+                pageable,
+                keyword,
+                category
+        );
+
         return ApiResponse.success("TEMPLATES_FETCHED", data);
     }
 
