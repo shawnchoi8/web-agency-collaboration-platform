@@ -108,7 +108,8 @@ public class PostService {
                                 try {
                                     Map<String, Object> answerData = objectMapper.readValue(
                                             answer.getContent(),
-                                            new TypeReference<Map<String, Object>>() {}
+                                            new TypeReference<Map<String, Object>>() {
+                                            }
                                     );
 
                                     if (answerData.containsKey("selectedOptionIds")) {
@@ -273,6 +274,7 @@ public class PostService {
                             .postId(post.getId())
                             .title(post.getTitle())
                             .status(post.getStatus())
+                            .openStatus(post.getOpenStatus())
                             .projectPhase(post.getProjectPhase())
                             .stepId(post.getStep().getId())
                             .author(PostListResponse.AuthorDto.builder()
@@ -470,6 +472,11 @@ public class PostService {
         // projectId 검증
         if (!post.getStep().getProject().getId().equals(projectId)) {
             throw new BusinessException(ErrorCode.POST_NOT_FOUND);
+        }
+
+        // CLOSED 상태 확인
+        if (post.getOpenStatus() == PostOpenStatus.CLOSED) {
+            throw new BusinessException(ErrorCode.POST_ALREADY_CLOSED);
         }
 
         // 반대편 role 참여 여부 확인

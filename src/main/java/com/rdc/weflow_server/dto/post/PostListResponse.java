@@ -1,6 +1,7 @@
 package com.rdc.weflow_server.dto.post;
 
 import com.rdc.weflow_server.entity.post.PostApprovalStatus;
+import com.rdc.weflow_server.entity.post.PostOpenStatus;
 import com.rdc.weflow_server.entity.project.ProjectPhase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,7 @@ public class PostListResponse {
         private Long postId;
         private String title;
         private PostApprovalStatus status;
+        private PostOpenStatus openStatus;
         private ProjectPhase projectPhase;
         private Long stepId;
         private AuthorDto author;
