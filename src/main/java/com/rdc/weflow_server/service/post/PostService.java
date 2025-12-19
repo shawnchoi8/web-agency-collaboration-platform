@@ -338,9 +338,9 @@ public class PostService {
                     .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         }
 
-        // 질문이 있으면 WAITING_CONFIRM, 없으면 NORMAL
+        // 질문이 있으면 WAITING_ANSWER, 없으면 NORMAL
         PostApprovalStatus status = (request.getQuestions() != null && !request.getQuestions().isEmpty())
-                ? PostApprovalStatus.WAITING_CONFIRM
+                ? PostApprovalStatus.WAITING_ANSWER
                 : PostApprovalStatus.NORMAL;
 
         // Post 생성 및 저장
@@ -620,7 +620,7 @@ public class PostService {
             // 질문 유무에 따라 상태 업데이트
             PostApprovalStatus newStatus = request.getQuestions().isEmpty()
                     ? PostApprovalStatus.NORMAL
-                    : PostApprovalStatus.WAITING_CONFIRM;
+                    : PostApprovalStatus.WAITING_ANSWER;
             post.updateStatus(newStatus);
         }
 
@@ -661,7 +661,7 @@ public class PostService {
         }
 
         // 이미 삭제된 게시글인지 확인
-        if (post.getStatus() == PostApprovalStatus.DELETED) {
+        if (post.getDeletedAt() != null) {
             throw new BusinessException(ErrorCode.POST_ALREADY_DELETED);
         }
 
@@ -669,8 +669,7 @@ public class PostService {
         List<Comment> comments = commentRepository.findAllByPostId(postId);
         comments.forEach(Comment::softDelete);
 
-        // Soft Delete: status를 DELETED로 변경하고 deletedAt 설정
-        post.updateStatus(PostApprovalStatus.DELETED);
+        // Soft Delete: deletedAt 설정
         post.softDelete();
 
         // 로그 기록
@@ -759,6 +758,15 @@ public class PostService {
                 .build();
         postAnswerRepository.save(answer);
 
+        // 모든 질문에 답변이 달렸는지 확인하고 상태 업데이트
+        List<PostQuestion> allQuestions = postQuestionRepository.findByPostId(postId);
+        boolean allAnswered = allQuestions.stream()
+                .allMatch(q -> postAnswerRepository.findByQuestionId(q.getId()).isPresent());
+
+        if (allAnswered && post.getStatus() == PostApprovalStatus.WAITING_ANSWER) {
+            post.updateStatus(PostApprovalStatus.ANSWERED);
+        }
+
         // 로그 기록
         activityLogService.createLog(
                 ActionType.CREATE,
@@ -796,42 +804,6 @@ public class PostService {
                 .build();
     }
 
-    /**
-     * 게시글 상태 변경 (CONFIRMED / REJECTED)
-     */
-    @Transactional
-    public void updatePostStatus(Long projectId, Long postId, PostStatusUpdateRequest request) {
-        // 게시글 조회
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-
-        // projectId 검증
-        if (!post.getStep().getProject().getId().equals(projectId)) {
-            throw new BusinessException(ErrorCode.POST_NOT_FOUND);
-        }
-
-        // 작성자 권한 검증
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-        if (!post.getUser().getId().equals(userDetails.getId())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-
-        // WAITING_CONFIRM 상태일 때만 변경 가능
-        if (post.getStatus() != PostApprovalStatus.WAITING_CONFIRM) {
-            throw new BusinessException(ErrorCode.INVALID_POST_STATUS);
-        }
-
-        // CONFIRMED 또는 REJECTED만 허용
-        PostApprovalStatus newStatus = request.getStatus();
-        if (newStatus != PostApprovalStatus.CONFIRMED && newStatus != PostApprovalStatus.REJECTED) {
-            throw new BusinessException(ErrorCode.INVALID_POST_STATUS);
-        }
-
-        // 상태 변경
-        post.updateStatus(newStatus);
-    }
 
     /**
      * 게시글 완료 (OPEN -> CLOSED)

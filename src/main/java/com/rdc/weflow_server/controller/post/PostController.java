@@ -108,19 +108,6 @@ public class PostController {
     }
 
     /**
-     * 게시글 승인 상태 변경 (CONFIRMED/REJECTED)
-     */
-    @PatchMapping("/{postId}/status")
-    public ApiResponse<Void> updatePostStatus(
-            @PathVariable Long projectId,
-            @PathVariable Long postId,
-            @RequestBody PostStatusUpdateRequest request
-    ) {
-        postService.updatePostStatus(projectId, postId, request);
-        return ApiResponse.success("게시글 상태 변경 성공", null);
-    }
-
-    /**
      * 게시글 완료 (OPEN -> CLOSED)
      */
     @PatchMapping("/{postId}/close")

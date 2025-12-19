@@ -32,8 +32,8 @@ public class Post extends BaseEntity {
     private ProjectPhase projectPhase; // 게시글이 어떤 phase에 속해있는지 계약-진행-납품-유지보수
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false) // TODO: DELETED 없애도 될 것 같아요. 나중에 확인 @Jaehee
-    private PostApprovalStatus status; // NORMAL, WAITING_CONFIRM, CONFIRMED, REJECTED, DELETED
+    @Column(nullable = false)
+    private PostApprovalStatus status; // NORMAL, WAITING_ANSWER, ANSWERED
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
