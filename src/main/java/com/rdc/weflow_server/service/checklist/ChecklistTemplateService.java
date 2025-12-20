@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -79,9 +80,21 @@ public class ChecklistTemplateService {
 
     // 템플릿 목록 조회
     @Transactional(readOnly = true)
-    public Page<TemplateResponse> getTemplateList(Pageable pageable) {
+    public Page<TemplateResponse> getTemplateList(Pageable pageable, String keyword, String category) {
 
-        Page<Checklist> templates = checklistRepository.findByIsTemplateTrue(pageable);
+        Page<Checklist> templates;
+
+        // 검색 조건에 따라 Repository 메서드 분기
+        if (StringUtils.hasText(keyword) || StringUtils.hasText(category)) {
+               templates = checklistRepository.findTemplatesByDynamicCriteria(
+                    pageable,
+                    keyword,
+                    category
+            );
+        } else {
+            // 일반 조회
+            templates = checklistRepository.findByIsTemplateTrue(pageable);
+        }
 
         return templates.map(template -> {
             int questionCount = questionRepository.countByChecklist(template);
