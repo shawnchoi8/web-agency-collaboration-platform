@@ -394,7 +394,8 @@ public class UserService {
         user.updateMyInfo(
                 request.getName(),
                 request.getPhoneNumber(),
-                request.getIsEmailNotificationEnabled()
+                request.getIsEmailNotificationEnabled(),
+                request.getIsSmsNotificationEnabled()
         );
 
         // 4. 로그 기록 (본인 수정)
