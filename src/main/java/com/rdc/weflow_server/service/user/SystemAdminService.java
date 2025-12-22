@@ -100,7 +100,7 @@ public class SystemAdminService {
         }
 
         if (req.getName() != null || req.getPhoneNumber() != null)
-            target.updateMyInfo(req.getName(), req.getPhoneNumber(), null);
+            target.updateMyInfo(req.getName(), req.getPhoneNumber(), null, null);
         if (req.getPassword() != null)
             target.changePassword(passwordEncoder.encode(req.getPassword()));
 

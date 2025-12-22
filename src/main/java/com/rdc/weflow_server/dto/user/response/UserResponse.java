@@ -21,6 +21,7 @@ public class UserResponse {
     private UserStatus status;
     private Boolean isTemporaryPassword;
     private Boolean isEmailNotificationEnabled;
+    private Boolean isSmsNotificationEnabled;
     private LocalDateTime lastLoginAt;
 
     // 회사 정보 (Flattening)
@@ -43,6 +44,7 @@ public class UserResponse {
                 .status(user.getStatus())
                 .isTemporaryPassword(user.getIsTemporaryPassword())
                 .isEmailNotificationEnabled(user.getIsEmailNotificationEnabled())
+                .isSmsNotificationEnabled(user.getIsSmsNotificationEnabled())
                 .lastLoginAt(user.getLastLoginAt())
                 .companyId(user.getCompany() != null ? user.getCompany().getId() : null)
                 .companyName(user.getCompany() != null ? user.getCompany().getName() : null)
