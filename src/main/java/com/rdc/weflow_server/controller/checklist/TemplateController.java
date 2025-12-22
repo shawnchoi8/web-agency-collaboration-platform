@@ -7,6 +7,7 @@ import com.rdc.weflow_server.dto.checklist.response.TemplateDetailResponse;
 import com.rdc.weflow_server.dto.checklist.response.TemplateResponse;
 import com.rdc.weflow_server.dto.checklist.request.TemplateRequest;
 import com.rdc.weflow_server.service.checklist.ChecklistTemplateService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +24,13 @@ public class TemplateController {
 
     // 템플릿 생성
     @PostMapping
-    public ApiResponse<Long> createTemplate(@RequestBody ChecklistCreateRequest request,  @AuthenticationPrincipal CustomUserDetails user) {
-        Long templateId = checklistTemplateService.createTemplate(request, user.getUser());
+    public ApiResponse<Long> createTemplate(
+            @RequestBody ChecklistCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest httpRequest
+    ) {
+        String ip = httpRequest.getRemoteAddr();
+        Long templateId = checklistTemplateService.createTemplate(request, user.getUser(), ip);
         return ApiResponse.success(
                 "TEMPLATE_CREATED",
                 templateId
@@ -58,8 +64,14 @@ public class TemplateController {
 
     // 템플릿 수정
     @PatchMapping("/{templateId}")
-    public ApiResponse<Long> updateTemplate(@PathVariable Long templateId, @RequestBody TemplateRequest request) {
-        Long id = checklistTemplateService.updateTemplate(templateId, request);
+    public ApiResponse<Long> updateTemplate(
+            @PathVariable Long templateId,
+            @RequestBody TemplateRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest httpRequest
+    ) {
+        String ip = httpRequest.getRemoteAddr();
+        Long id = checklistTemplateService.updateTemplate(templateId, request, user.getUser(), ip);
 
         return ApiResponse.success(
                 "TEMPLATE_UPDATED",
@@ -69,8 +81,13 @@ public class TemplateController {
 
     // 템플릿 삭제
     @DeleteMapping("/{templateId}")
-    public ApiResponse<Long> deleteTemplate(@PathVariable Long templateId) {
-        Long id = checklistTemplateService.deleteTemplate(templateId);
+    public ApiResponse<Long> deleteTemplate(
+            @PathVariable Long templateId,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest httpRequest
+    ) {
+        String ip = httpRequest.getRemoteAddr();
+        Long id = checklistTemplateService.deleteTemplate(templateId, user.getUser(), ip);
 
         return ApiResponse.success(
                 "TEMPLATE_DELETED",
