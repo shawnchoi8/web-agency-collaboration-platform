@@ -32,8 +32,8 @@ public class PostListResponse {
         private ProjectPhase projectPhase;
         private Long stepId;
         private AuthorDto author;
-        private Boolean hasFiles;
-        private Boolean hasLinks;
+        private Integer fileCount;
+        private Integer linkCount;
         private Boolean hasQuestions;
         private Integer commentCount;
         private Integer replyCount;
