@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -237,29 +238,36 @@ public class PostService {
         // PostListResponse로 변환
         List<PostListResponse.PostItem> postItems = postPage.getContent().stream()
                 .map(post -> {
-                    // 파일 존재 여부
-                    boolean hasFiles = attachmentRepository.countByTargetTypeAndTargetIdAndAttachmentType(
+                    // 파일 갯수
+                    int fileCount = attachmentRepository.countByTargetTypeAndTargetIdAndAttachmentType(
                             Attachment.TargetType.POST,
                             post.getId(),
                             Attachment.AttachmentType.FILE
-                    ) > 0;
+                    );
 
-                    // 링크 존재 여부
-                    boolean hasLinks = attachmentRepository.countByTargetTypeAndTargetIdAndAttachmentType(
+                    // 링크 갯수
+                    int linkCount = attachmentRepository.countByTargetTypeAndTargetIdAndAttachmentType(
                             Attachment.TargetType.POST,
                             post.getId(),
                             Attachment.AttachmentType.LINK
-                    ) > 0;
+                    );
 
                     // 질문 존재 여부
                     boolean hasQuestions = !postQuestionRepository.findByPostId(post.getId()).isEmpty();
 
-                    // 댓글 갯수 (children 리스트에서 parentPost가 있는 것만)
-                    int commentCount = post.getChildren().size();
+                    // 댓글 조회 (parentComment가 null인 최상위 댓글만)
+                    List<Comment> comments = commentRepository.findAllByPostId(post.getId()).stream()
+                            .filter(comment -> comment.getParentComment() == null && comment.getDeletedAt() == null)
+                            .toList();
 
-                    // 답글 갯수 (children의 children)
-                    int replyCount = post.getChildren().stream()
-                            .mapToInt(child -> child.getChildren().size())
+                    // 댓글 갯수
+                    int commentCount = comments.size();
+
+                    // 답글 갯수 (댓글의 children)
+                    int replyCount = comments.stream()
+                            .mapToInt(comment -> (int) comment.getChildren().stream()
+                                    .filter(reply -> reply.getDeletedAt() == null)
+                                    .count())
                             .sum();
 
                     // 수정 여부 (생성일과 수정일이 다르면 수정됨)
@@ -283,8 +291,8 @@ public class PostService {
                                     .role(post.getUser().getRole().name())
                                     .companyName(companyName)
                                     .build())
-                            .hasFiles(hasFiles)
-                            .hasLinks(hasLinks)
+                            .fileCount(fileCount)
+                            .linkCount(linkCount)
                             .hasQuestions(hasQuestions)
                             .commentCount(commentCount)
                             .replyCount(replyCount)
@@ -517,7 +525,7 @@ public class PostService {
             // 요청에 포함된 파일 ID 목록
             List<Long> requestedFileIds = request.getFiles().stream()
                     .map(PostUpdateRequest.FileRequest::getFileId)
-                    .filter(id -> id != null)
+                    .filter(Objects::nonNull)
                     .toList();
 
             // 기존 파일 중 요청에 없는 파일은 삭제
@@ -554,7 +562,7 @@ public class PostService {
             // 요청에 포함된 링크 ID 목록
             List<Long> requestedLinkIds = request.getLinks().stream()
                     .map(PostUpdateRequest.LinkRequest::getLinkId)
-                    .filter(id -> id != null)
+                    .filter(Objects::nonNull)
                     .toList();
 
             // 기존 링크 중 요청에 없는 링크는 삭제
