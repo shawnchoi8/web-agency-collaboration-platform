@@ -41,6 +41,7 @@ public class Checklist extends BaseEntity {
 
     /** 답변 제출 시 잠김 */
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isLocked = false;
 
     /** 앱 종류/쇼핑몰/ERP 등 카테고리 */
@@ -58,6 +59,7 @@ public class Checklist extends BaseEntity {
 
     /** 삭제 여부 (Soft Delete) */
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isDeleted = false;
 
     /** 삭제 시간 */
