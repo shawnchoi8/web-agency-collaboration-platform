@@ -227,6 +227,12 @@ public class CommentService {
             throw new BusinessException(ErrorCode.COMMENT_ALREADY_DELETED);
         }
 
+        // 게시글이 CLOSED 상태인지 확인
+        Post post = comment.getPost();
+        if (post.getOpenStatus() == com.rdc.weflow_server.entity.post.PostOpenStatus.CLOSED) {
+            throw new BusinessException(ErrorCode.POST_ALREADY_CLOSED);
+        }
+
         // Soft Delete
         comment.softDelete();
 
@@ -254,7 +260,6 @@ public class CommentService {
 
         // AGENCY, CLIENT는 프로젝트 멤버인 경우만 접근 가능
         boolean isMember = projectMemberRepository.findActiveByProjectIdAndUserId(projectId, currentUser.getId()).isPresent();
-        ;
         if (!isMember) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }

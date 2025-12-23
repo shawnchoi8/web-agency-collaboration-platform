@@ -4,9 +4,12 @@ import com.rdc.weflow_server.dto.attachment.AttachmentFileRequest;
 import com.rdc.weflow_server.dto.attachment.AttachmentLinkRequest;
 import com.rdc.weflow_server.dto.attachment.AttachmentResponse;
 import com.rdc.weflow_server.entity.attachment.Attachment;
+import com.rdc.weflow_server.entity.post.Post;
+import com.rdc.weflow_server.entity.post.PostOpenStatus;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.attachment.AttachmentRepository;
+import com.rdc.weflow_server.repository.post.PostRepository;
 import com.rdc.weflow_server.service.file.S3FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 public class AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
+    private final PostRepository postRepository;
     private final S3FileService s3FileService;
 
     /**
@@ -79,6 +83,16 @@ public class AttachmentService {
     public void deleteAttachment(Long attachmentId) {
         Attachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ATTACHMENT_NOT_FOUND));
+
+        // POST 타입 첨부파일인 경우 게시글 CLOSED 상태 확인
+        if (attachment.getTargetType() == Attachment.TargetType.POST) {
+            Post post = postRepository.findById(attachment.getTargetId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+            if (post.getOpenStatus() == PostOpenStatus.CLOSED) {
+                throw new BusinessException(ErrorCode.POST_ALREADY_CLOSED);
+            }
+        }
 
         // S3 파일 삭제 (파일 타입인 경우에만)
         if (attachment.getAttachmentType() == Attachment.AttachmentType.FILE
