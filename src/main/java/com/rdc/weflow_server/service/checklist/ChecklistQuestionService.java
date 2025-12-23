@@ -4,11 +4,14 @@ import com.rdc.weflow_server.dto.checklist.request.QuestionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.request.QuestionRequest;
 import com.rdc.weflow_server.entity.checklist.Checklist;
 import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.entity.log.ActionType;
+import com.rdc.weflow_server.entity.log.TargetTable;
 import com.rdc.weflow_server.exception.BusinessException;
 import com.rdc.weflow_server.exception.ErrorCode;
 import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
+import com.rdc.weflow_server.service.log.ActivityLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +25,10 @@ public class ChecklistQuestionService {
     private final ChecklistRepository checklistRepository;
     private final ChecklistQuestionRepository questionRepository;
     private final ChecklistOptionRepository optionRepository;
+    private final ActivityLogService activityLogService;
 
     // 질문 생성
-    public Long createQuestion(QuestionRequest request) {
+    public Long createQuestion(QuestionRequest request, Long userId, String ip) {
 
         Checklist checklist = checklistRepository.findById(request.getChecklistId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
@@ -40,14 +44,24 @@ public class ChecklistQuestionService {
 
         ChecklistQuestion saved = questionRepository.save(question);
 
+        activityLogService.createLog(
+                ActionType.CREATE,
+                TargetTable.CHECKLIST_QUESTION,
+                saved.getId(),
+                userId,
+                checklist.getStep().getProject().getId(),
+                ip
+        );
+
         return saved.getId();
     }
 
     // 질문 수정
-    public Long updateQuestion(Long questionId, QuestionRequest request) {
+    public Long updateQuestion(Long questionId, QuestionRequest request, Long userId, String ip) {
 
         ChecklistQuestion question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
+        Long projectId = question.getChecklist().getStep().getProject().getId();
 
         question.updateQuestion(
                 request.getQuestionText(),
@@ -55,16 +69,35 @@ public class ChecklistQuestionService {
                 null
         );
 
+        activityLogService.createLog(
+                ActionType.UPDATE,
+                TargetTable.CHECKLIST_QUESTION,
+                questionId,
+                userId,
+                projectId,
+                ip
+        );
+
         return question.getId();
     }
 
     // 질문 삭제
-    public void deleteQuestion(Long questionId) {
+    public void deleteQuestion(Long questionId, Long userId, String ip) {
 
         ChecklistQuestion question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_QUESTION_NOT_FOUND));
+        Long projectId = question.getChecklist().getStep().getProject().getId();
 
         questionRepository.delete(question);
+
+        activityLogService.createLog(
+                ActionType.DELETE,
+                TargetTable.CHECKLIST_QUESTION,
+                questionId,
+                userId,
+                projectId,
+                ip
+        );
     }
 
     // 질문 순서 재정렬

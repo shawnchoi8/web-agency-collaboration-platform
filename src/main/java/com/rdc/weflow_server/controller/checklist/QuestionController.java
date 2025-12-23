@@ -1,10 +1,13 @@
 package com.rdc.weflow_server.controller.checklist;
 
 import com.rdc.weflow_server.common.api.ApiResponse;
+import com.rdc.weflow_server.config.security.CustomUserDetails;
 import com.rdc.weflow_server.dto.checklist.request.QuestionReorderRequest;
 import com.rdc.weflow_server.dto.checklist.request.QuestionRequest;
 import com.rdc.weflow_server.service.checklist.ChecklistQuestionService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,9 +19,12 @@ public class QuestionController {
     // 질문 생성
     @PostMapping
     public ApiResponse<Long> createQuestion(
-            @RequestBody QuestionRequest request
+            @RequestBody QuestionRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest httpRequest
     ) {
-        Long questionId = questionService.createQuestion(request);
+        String ip = httpRequest.getRemoteAddr();
+        Long questionId = questionService.createQuestion(request, user.getUser().getId(), ip);
 
         return ApiResponse.success(
                 "QUESTION_CREATED",
@@ -30,9 +36,12 @@ public class QuestionController {
     @PatchMapping("/{questionId}")
     public ApiResponse<Long> updateQuestion(
             @PathVariable Long questionId,
-            @RequestBody QuestionRequest request
+            @RequestBody QuestionRequest request,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest httpRequest
     ) {
-        Long id = questionService.updateQuestion(questionId, request);
+        String ip = httpRequest.getRemoteAddr();
+        Long id = questionService.updateQuestion(questionId, request, user.getUser().getId(), ip);
 
         return ApiResponse.success(
                 "QUESTION_UPDATED",
@@ -42,8 +51,13 @@ public class QuestionController {
 
     // 질문 삭제
     @DeleteMapping("/{questionId}")
-    public ApiResponse<Long> deleteQuestion(@PathVariable Long questionId) {
-        questionService.deleteQuestion(questionId);
+    public ApiResponse<Long> deleteQuestion(
+            @PathVariable Long questionId,
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletRequest httpRequest
+    ) {
+        String ip = httpRequest.getRemoteAddr();
+        questionService.deleteQuestion(questionId, user.getUser().getId(), ip);
 
         return ApiResponse.success(
                 "QUESTION_DELETED",
