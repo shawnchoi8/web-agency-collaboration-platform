@@ -673,6 +673,11 @@ public class PostService {
             throw new BusinessException(ErrorCode.POST_ALREADY_DELETED);
         }
 
+        // CLOSED 상태 확인
+        if (post.getOpenStatus() == PostOpenStatus.CLOSED) {
+            throw new BusinessException(ErrorCode.POST_ALREADY_CLOSED);
+        }
+
         // 게시글의 모든 댓글도 함께 Soft Delete
         List<Comment> comments = commentRepository.findAllByPostId(postId);
         comments.forEach(Comment::softDelete);
@@ -711,6 +716,11 @@ public class PostService {
         // projectId 검증
         if (!post.getStep().getProject().getId().equals(projectId)) {
             throw new BusinessException(ErrorCode.POST_NOT_FOUND);
+        }
+
+        // CLOSED 상태 확인
+        if (post.getOpenStatus() == PostOpenStatus.CLOSED) {
+            throw new BusinessException(ErrorCode.POST_ALREADY_CLOSED);
         }
 
         // 현재 사용자 조회
