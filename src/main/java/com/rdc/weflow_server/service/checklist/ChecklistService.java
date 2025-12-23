@@ -26,14 +26,10 @@ import com.rdc.weflow_server.repository.checklist.ChecklistAnswerRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
 import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
-import com.rdc.weflow_server.repository.project.ProjectMemberRepository;
 import com.rdc.weflow_server.repository.step.StepRepository;
-import com.rdc.weflow_server.service.log.ActivityLogService;
-import com.rdc.weflow_server.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +64,7 @@ public class ChecklistService {
                 .isTemplate(false)
                 .isLocked(false)
                 .step(step)
+                .category(null)
                 .createdBy(user)
                 .build();
         checklistRepository.save(checklist);
@@ -90,7 +87,7 @@ public class ChecklistService {
                     ChecklistOption option = ChecklistOption.builder()
                             .optionText(optReq.getOptionText())
                             .orderIndex(optReq.getOrderIndex())
-                            .hasInput(optReq.getHasInput())
+                            .hasInput(optReq.getHasInput() != null ? optReq.getHasInput() : false)
                             .question(question)
                             .build();
 
