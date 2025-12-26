@@ -1,0 +1,172 @@
+package com.rdc.weflow_server.service.checklist;
+
+import com.rdc.weflow_server.dto.checklist.request.ChecklistCreateRequest;
+import com.rdc.weflow_server.dto.checklist.response.TemplateDetailResponse;
+import com.rdc.weflow_server.dto.checklist.response.TemplateResponse;
+import com.rdc.weflow_server.dto.checklist.request.TemplateRequest;
+import com.rdc.weflow_server.entity.checklist.Checklist;
+import com.rdc.weflow_server.entity.checklist.ChecklistOption;
+import com.rdc.weflow_server.entity.checklist.ChecklistQuestion;
+import com.rdc.weflow_server.entity.log.ActionType;
+import com.rdc.weflow_server.entity.log.TargetTable;
+import com.rdc.weflow_server.entity.user.User;
+import com.rdc.weflow_server.exception.BusinessException;
+import com.rdc.weflow_server.exception.ErrorCode;
+import com.rdc.weflow_server.repository.checklist.ChecklistOptionRepository;
+import com.rdc.weflow_server.repository.checklist.ChecklistQuestionRepository;
+import com.rdc.weflow_server.repository.checklist.ChecklistRepository;
+import com.rdc.weflow_server.repository.user.UserRepository;
+import com.rdc.weflow_server.service.log.ActivityLogService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class ChecklistTemplateService {
+    private final ChecklistRepository checklistRepository;
+    private final ChecklistQuestionRepository questionRepository;
+    private final ChecklistOptionRepository optionRepository;
+    private final ActivityLogService activityLogService;
+
+    // 템플릿 생성
+    @Transactional
+    public Long createTemplate(ChecklistCreateRequest request, User user, String ip) {
+        Checklist template = Checklist.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .category(request.getCategory())
+                .isTemplate(true)
+                .isLocked(false)
+                .step(null)
+                .createdBy(user)
+                .isDeleted(false)
+                .build();
+
+        checklistRepository.save(template);
+
+        int qOrder = 1;
+        for (ChecklistCreateRequest.QuestionCreateRequest qReq : request.getQuestions()) {
+
+            ChecklistQuestion question = ChecklistQuestion.builder()
+                    .checklist(template)
+                    .questionText(qReq.getQuestionText())
+                    .questionType(ChecklistQuestion.QuestionType.valueOf(qReq.getQuestionType()))
+                    .orderIndex(qOrder++)
+                    .build();
+
+            questionRepository.save(question);
+
+            int oOrder = 1;
+            for (ChecklistCreateRequest.OptionCreateRequest oReq : qReq.getOptions()) {
+
+                ChecklistOption option = ChecklistOption.builder()
+                        .question(question)
+                        .optionText(oReq.getOptionText())
+                        .hasInput(oReq.getHasInput())
+                        .orderIndex(oReq.getOrderIndex() != null ? oReq.getOrderIndex() : oOrder++)
+                        .build();
+
+                optionRepository.save(option);
+            }
+        }
+
+        activityLogService.createLog(
+                ActionType.CREATE,
+                TargetTable.TEMPLATE,
+                template.getId(),
+                user.getId(),
+                null,
+                ip
+        );
+
+        return template.getId();
+    }
+
+
+    // 템플릿 목록 조회
+    @Transactional(readOnly = true)
+    public Page<TemplateResponse> getTemplateList(Pageable pageable, String keyword, String category) {
+
+        Page<Checklist> templates;
+
+        // 검색 조건에 따라 Repository 메서드 분기
+        if (StringUtils.hasText(keyword) || StringUtils.hasText(category)) {
+               templates = checklistRepository.findTemplatesByDynamicCriteria(
+                    pageable,
+                    keyword,
+                    category
+            );
+        } else {
+            // 일반 조회
+            templates = checklistRepository.findByIsTemplateTrue(pageable);
+        }
+
+        return templates.map(template -> {
+            int questionCount = questionRepository.countByChecklist(template);
+            return TemplateResponse.from(template, questionCount);
+        });
+    }
+
+    // 템플릿 상세 조회
+    @Transactional(readOnly = true)
+    public TemplateDetailResponse getTemplateDetail(Long templateId) {
+
+        Checklist template = checklistRepository.findByIdAndIsTemplateTrue(templateId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHECKLIST_NOT_FOUND));
+
+        // 질문 + 옵션 조회
+        List<ChecklistQuestion> questions =
+                questionRepository.findAllByChecklistOrderByOrderIndexAsc(template);
+
+        return TemplateDetailResponse.from(template, questions);
+    }
+
+    // 템플릿 수정
+    public Long updateTemplate(Long templateId, TemplateRequest request, User user, String ip) {
+
+        Checklist template = checklistRepository.findByIdAndIsTemplateTrue(templateId)
+                .orElseThrow(() -> new RuntimeException("TEMPLATE_NOT_FOUND"));
+
+        template.updateTemplate(
+                request.getTitle(),
+                request.getDescription(),
+                request.getCategory()
+        );
+
+        activityLogService.createLog(
+                ActionType.UPDATE,
+                TargetTable.TEMPLATE,
+                template.getId(),
+                user.getId(),
+                null,
+                ip
+        );
+
+        return template.getId();
+    }
+
+    // 템플릿 삭제
+    public Long deleteTemplate(Long templateId, User user, String ip) {
+        Checklist template = checklistRepository.findByIdAndIsTemplateTrue(templateId)
+                .orElseThrow(() -> new RuntimeException("TEMPLATE_NOT_FOUND"));
+
+        template.softDelete();
+
+        activityLogService.createLog(
+                ActionType.DELETE,
+                TargetTable.TEMPLATE,
+                templateId,
+                user.getId(),
+                null,
+                ip
+        );
+        return template.getId();
+    }
+}
